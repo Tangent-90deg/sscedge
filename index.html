@@ -1182,33 +1182,30 @@ let pyqAnsweredToday = 0, pyqCorrectToday = 0;
 async function loadDailyQuestions() {
   const container = document.getElementById('pyqContainer');
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="ti ti-loader" style="font-size:32px;color:var(--accent)"></i><div style="margin-top:12px">Generating today\'s questions using AI...</div></div>';
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)">Generating today\'s questions...</div>';
   pyqAnsweredToday = 0; pyqCorrectToday = 0; pyqAnswered = {};
   updatePyqScore();
-
-  const dateStr = today();
-  const topics = ['Reasoning — Syllogism','Reasoning — Blood Relations','Reasoning — Seating Arrangement','Reasoning — Coding-Decoding','Quantitative — Percentage','Quantitative — Profit and Loss','Quantitative — Speed, Time and Distance','Quantitative — Geometry','English — Synonyms','English — Antonyms','English — Fill in the blanks','English — Error Spotting','General Awareness — History','General Awareness — Geography','General Awareness — Science','General Awareness — Current Affairs','Computer — MS Office','Computer — Internet and Networks','Computer — Operating Systems'];
-  const selected = shuffleArr([...topics]).slice(0,10);
-
+  const topics = ['Reasoning — Syllogism','Reasoning — Blood Relations','Quantitative — Percentage','Quantitative — Profit and Loss','English — Synonyms','English — Antonyms','General Awareness — History','General Awareness — Current Affairs','Computer — MS Office','Computer — Internet'];
   try {
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 3000,
-        system: 'You are an SSC CGL exam question generator. Generate exactly 10 multiple choice questions for the topics provided. Return ONLY valid JSON, no other text, in this exact format: [{"topic":"topic name","question":"question text","options":["A) option","B) option","C) option","D) option"],"answer":"A","explanation":"brief explanation"}]',
-        messages: [{ role: 'user', content: `Generate 1 SSC CGL level MCQ for each of these topics (10 total). Make them realistic exam-level questions. Topics: ${selected.join(', ')}. Date seed: ${dateStr}. Return only JSON array.` }]
+        model: 'llama-3.1-8b-instant',
+        max_tokens: 3000,
+        system: 'You are an SSC CGL question generator. Return ONLY a valid JSON array, no markdown, no explanation. Format: [{"topic":"topic","question":"question","options":["A) opt","B) opt","C) opt","D) opt"],"answer":"A","explanation":"brief"}]',
+        messages: [{ role: 'user', content: 'Generate 10 SSC CGL MCQs, one for each topic: ' + topics.join(', ') + '. Return ONLY the JSON array.' }]
       })
     });
     const data = await res.json();
-const text = data.content?.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
-const startIdx = text.indexOf('[');
-const endIdx = text.lastIndexOf(']') + 1;
-const jsonStr = text.slice(startIdx, endIdx);
-pyqQuestions = JSON.parse(jsonStr);
+    const text = data?.content?.[0]?.text || '';
+    const startIdx = text.indexOf('[');
+    const endIdx = text.lastIndexOf(']') + 1;
+    if (startIdx === -1) throw new Error('No JSON found');
+    pyqQuestions = JSON.parse(text.slice(startIdx, endIdx));
     renderPyqQuestions();
   } catch (e) {
-    container.innerHTML = '<div style="color:var(--text2);padding:20px">Failed to generate questions. Check internet connection and try again.<br><button class="btn btn-ghost" style="margin-top:12px" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>Retry</button></div>';
+    container.innerHTML = '<div style="color:var(--text2);padding:20px">Failed to generate questions. <button class="btn btn-ghost" style="margin-top:12px" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>Retry</button></div>';
   }
 }
 
