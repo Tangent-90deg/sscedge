@@ -662,8 +662,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 // ══════════════════════════════════════════
 // IMPORTANT: Replace with your own Supabase project URL and anon key
 // Get these free at https://supabase.com → New project → Project Settings → API
-const SUPABASE_URL = 'https://bbwjiqnqsjojfidakfzo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJid2ppcW5xc2pvamZpZGFrZnpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDU4MjksImV4cCI6MjA5ODIyMTgyOX0.A6f3wDQrPE9IzyBGc44SQ1zGNZ3rcbDAO7Be1OUzmtQ';
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY';
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1191,7 +1191,7 @@ async function loadDailyQuestions() {
   const selected = shuffleArr([...topics]).slice(0,10);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1376,7 +1376,7 @@ async function sendMentorMsg() {
   const weakSubs = SUBJECTS.filter(s => subjectState[s.key] === 'weak').map(s => s.name).join(', ') || 'none marked';
   const lastMock = mockHistory[0] ? mockHistory[0].score + '/200' : 'no mock logged';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6', max_tokens: 400,
@@ -1404,7 +1404,7 @@ async function generateAIDailyMessage() {
   const weakSubs = SUBJECTS.filter(s => subjectState[s.key] === 'weak').map(s => s.name).join(', ') || 'none marked yet';
   const lastMock = mockHistory[0] ? mockHistory[0].score + '/200 on ' + mockHistory[0].date : 'no mock logged yet';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6', max_tokens: 150,
