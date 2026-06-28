@@ -1179,6 +1179,56 @@ function renderTypingHistory() {
 // ══════════════════════════════════════════
 let pyqAnsweredToday = 0, pyqCorrectToday = 0;
 
+const FALLBACK_PYQ_QUESTIONS = [
+  { topic:'Reasoning - Syllogism', question:'Statements: All books are pens. Some pens are pencils. Conclusion I: Some books are pencils. Conclusion II: Some pens are books.', options:['A) Only I follows','B) Only II follows','C) Both I and II follow','D) Neither follows'], answer:'B', explanation:'All books are pens means at least some pens are books. There is no fixed relation between books and pencils.' },
+  { topic:'Reasoning - Blood Relations', question:'Pointing to a man, Riya said, "He is the son of my mother\'s only son." How is the man related to Riya?', options:['A) Brother','B) Son','C) Father','D) Nephew'], answer:'D', explanation:'Riya\'s mother\'s only son is Riya\'s brother. That brother\'s son is Riya\'s nephew.' },
+  { topic:'Quantitative - Percentage', question:'A number is increased by 20% and then decreased by 20%. What is the net change?', options:['A) No change','B) 2% decrease','C) 4% decrease','D) 4% increase'], answer:'C', explanation:'Successive change is 1.2 x 0.8 = 0.96, so the final value is 4% less than the original.' },
+  { topic:'Quantitative - Profit and Loss', question:'A shopkeeper buys an item for Rs. 800 and sells it for Rs. 920. Find the profit percentage.', options:['A) 12%','B) 15%','C) 18%','D) 20%'], answer:'B', explanation:'Profit is 120. Profit percentage = 120/800 x 100 = 15%.' },
+  { topic:'English - Synonyms', question:'Choose the synonym of "Abundant".', options:['A) Scarce','B) Plentiful','C) Empty','D) Rare'], answer:'B', explanation:'Abundant means available in large quantity, so plentiful is the closest synonym.' },
+  { topic:'English - Antonyms', question:'Choose the antonym of "Rigid".', options:['A) Flexible','B) Strict','C) Hard','D) Firm'], answer:'A', explanation:'Rigid means stiff or unbending. Flexible means able to bend or adapt.' },
+  { topic:'General Awareness - History', question:'Who founded the Maurya Empire?', options:['A) Ashoka','B) Bindusara','C) Chandragupta Maurya','D) Samudragupta'], answer:'C', explanation:'Chandragupta Maurya founded the Maurya Empire with guidance from Chanakya.' },
+  { topic:'General Awareness - Current Affairs', question:'Which institution releases India\'s monetary policy?', options:['A) SEBI','B) RBI','C) NITI Aayog','D) Finance Commission'], answer:'B', explanation:'The Reserve Bank of India announces monetary policy through its Monetary Policy Committee.' },
+  { topic:'Computer - MS Office', question:'Which shortcut is commonly used to save a document in MS Word?', options:['A) Ctrl + S','B) Ctrl + P','C) Ctrl + C','D) Ctrl + X'], answer:'A', explanation:'Ctrl + S is the standard save shortcut in most Office applications.' },
+  { topic:'Computer - Internet', question:'What does URL stand for?', options:['A) Uniform Resource Locator','B) Universal Record Link','C) Unified Router Line','D) User Resource Login'], answer:'A', explanation:'URL stands for Uniform Resource Locator, the address used to locate resources on the web.' }
+];
+
+function normalizePyqQuestions(questions) {
+  if (!Array.isArray(questions)) throw new Error('Daily questions response is not an array');
+  return questions.slice(0, 10).map((q, index) => {
+    const options = Array.isArray(q.options) ? q.options.slice(0, 4) : [];
+    if (options.length !== 4) throw new Error('Question ' + (index + 1) + ' does not have 4 options');
+    const normalizedOptions = options.map((opt, oi) => {
+      const text = String(opt || '').trim();
+      return /^[A-D]\)/i.test(text) ? text.replace(/^([a-d])\)/i, m => m.toUpperCase()) : String.fromCharCode(65 + oi) + ') ' + text.replace(/^[A-D][).]\s*/i, '');
+    });
+    const answerMatch = String(q.answer || '').trim().match(/[A-D]/i);
+    if (!answerMatch) throw new Error('Question ' + (index + 1) + ' has no valid answer');
+    return {
+      topic: String(q.topic || 'SSC CGL').trim(),
+      question: String(q.question || '').trim(),
+      options: normalizedOptions,
+      answer: answerMatch[0].toUpperCase(),
+      explanation: String(q.explanation || 'Review the concept and try a similar question.').trim()
+    };
+  });
+}
+
+function parseQuestionJson(text) {
+  const clean = String(text || '').replace(/```json|```/gi, '').trim();
+  const startIdx = clean.indexOf('[');
+  const endIdx = clean.lastIndexOf(']') + 1;
+  if (startIdx === -1 || endIdx <= startIdx) throw new Error('No JSON array found');
+  return JSON.parse(clean.slice(startIdx, endIdx));
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+
+function encodePyqArg(value) {
+  return encodeURIComponent(value).replace(/'/g, '%27');
+}
+
 async function loadDailyQuestions() {
   const container = document.getElementById('pyqContainer');
   if (!container) return;
@@ -1197,15 +1247,18 @@ async function loadDailyQuestions() {
         messages: [{ role: 'user', content: 'Generate 10 SSC CGL MCQs, one for each topic: ' + topics.join(', ') + '. Return ONLY the JSON array.' }]
       })
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Question generation failed');
+    }
     const data = await res.json();
     const text = data?.content?.[0]?.text || '';
-    const startIdx = text.indexOf('[');
-    const endIdx = text.lastIndexOf(']') + 1;
-    if (startIdx === -1) throw new Error('No JSON found');
-    pyqQuestions = JSON.parse(text.slice(startIdx, endIdx));
+    pyqQuestions = normalizePyqQuestions(parseQuestionJson(text));
     renderPyqQuestions();
   } catch (e) {
-    container.innerHTML = '<div style="color:var(--text2);padding:20px">Failed to generate questions. <button class="btn btn-ghost" style="margin-top:12px" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>Retry</button></div>';
+    pyqQuestions = normalizePyqQuestions(FALLBACK_PYQ_QUESTIONS);
+    renderPyqQuestions();
+    container.insertAdjacentHTML('afterbegin', '<div class="card" style="margin-bottom:12px;border-color:var(--amber);background:var(--amber-bg);color:var(--amber);font-size:12px">AI questions could not be generated right now, so a built-in practice set is shown. Check the Vercel <strong>GROQ_API_KEY</strong> environment variable if this keeps happening.</div>');
   }
 }
 
@@ -1217,12 +1270,12 @@ function renderPyqQuestions() {
   container.innerHTML = pyqQuestions.map((q, qi) => `
     <div class="pyq-question" id="pyq-${qi}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span class="tag tag-accent" style="font-size:10px">${q.topic}</span>
+        <span class="tag tag-accent" style="font-size:10px">${escapeHtml(q.topic)}</span>
         <span style="font-size:11px;color:var(--text3)">Q${qi+1}/10</span>
       </div>
-      <div style="font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.6">${q.question}</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.6">${escapeHtml(q.question)}</div>
       <div class="pyq-options">
-        ${q.options.map((opt, oi) => `<button class="pyq-option" onclick="answerPyq(${qi},${oi},'${opt[0]}','${q.answer}','${encodeURIComponent(q.explanation)}')">${opt}</button>`).join('')}
+        ${q.options.map((opt, oi) => `<button class="pyq-option" onclick="answerPyq(${qi},${oi},'${opt[0]}','${q.answer}','${encodePyqArg(q.explanation)}')">${escapeHtml(opt)}</button>`).join('')}
       </div>
       <div id="pyq-exp-${qi}" style="display:none;margin-top:10px;padding:10px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6"></div>
     </div>`).join('');
@@ -1248,7 +1301,8 @@ function answerPyq(qi, oi, selected, correct, expEncoded) {
 
   const exp = document.getElementById('pyq-exp-' + qi);
   exp.style.display = 'block';
-  exp.innerHTML = `<strong style="color:${isCorrect?'var(--green)':'var(--red)'}">${isCorrect?'✓ Correct!':'✗ Wrong'}</strong> — ${decodeURIComponent(expEncoded)}`;
+  exp.innerHTML = `<strong style="color:${isCorrect?'var(--green)':'var(--red)'}">${isCorrect?'Correct!':'Wrong'}</strong> - `;
+  exp.appendChild(document.createTextNode(decodeURIComponent(expEncoded)));
 
   // Save to DB
   sb.from('daily_question_answers').insert({ user_id: currentUser.id, date: today(), topic: pyqQuestions[qi].topic, is_correct: isCorrect });
