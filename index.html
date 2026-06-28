@@ -1201,8 +1201,11 @@ async function loadDailyQuestions() {
       })
     });
     const data = await res.json();
-    const text = data.content?.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
-    pyqQuestions = JSON.parse(text);
+const text = data.content?.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+const startIdx = text.indexOf('[');
+const endIdx = text.lastIndexOf(']') + 1;
+const jsonStr = text.slice(startIdx, endIdx);
+pyqQuestions = JSON.parse(jsonStr);
     renderPyqQuestions();
   } catch (e) {
     container.innerHTML = '<div style="color:var(--text2);padding:20px">Failed to generate questions. Check internet connection and try again.<br><button class="btn btn-ghost" style="margin-top:12px" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>Retry</button></div>';
