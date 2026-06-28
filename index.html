@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SSC Edge — CGL Prep Platform</title>
-<meta name="description" content="AI-powered SSC CGL preparation platform with daily dashboard, typing practice, AI mentor, mock analysis and more.">
+<meta name="description" content="AI-powered SSC CGL preparation — dashboard, typing, AI mentor, mock analysis, PYQ daily questions.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236c63ff'/><text y='.9em' font-size='70' x='15' fill='white' font-weight='bold'>S</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -23,54 +25,72 @@
   --radius:10px;--radius-lg:16px;
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
-.app{display:flex;height:100vh;overflow:hidden}
 
-/* Sidebar */
+/* ── Auth screen ── */
+#authScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:0}
+#authScreen.hidden{display:none}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;width:100%;max-width:420px}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;justify-content:center}
+.auth-logo-icon{width:44px;height:44px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:800}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:var(--radius);padding:3px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;background:none;color:var(--text2);transition:all .15s}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.auth-error{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none}
+.auth-success{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:14px;display:none}
+
+/* ── App layout ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.app.hidden{display:none}
 .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto}
-.sidebar-logo{padding:0 16px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);margin-bottom:12px}
-.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;flex-shrink:0}
-.logo-text{font-size:15px;font-weight:700}
-.logo-sub{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.5px}
+.sidebar-logo{padding:0 16px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;font-weight:800;flex-shrink:0}
+.logo-text{font-size:14px;font-weight:700}
+.logo-sub{font-size:9px;color:var(--accent);font-weight:600;letter-spacing:.5px}
 .nav-section{padding:0 8px 8px}
 .nav-label{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;padding:8px 8px 4px;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
 .nav-item:hover{background:var(--bg3);color:var(--text)}
 .nav-item.active{background:var(--accent-bg);color:var(--accent)}
-.nav-item i{width:18px;text-align:center;font-size:16px}
-.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+.nav-item i{width:16px;text-align:center;font-size:15px}
+.user-chip{margin:auto 8px 0;padding:10px 12px;background:var(--bg3);border-radius:var(--radius);display:flex;align-items:center;gap:10px}
+.user-chip-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:white;flex-shrink:0}
+.user-chip-name{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;font-size:16px;transition:color .15s}
+.logout-btn:hover{color:var(--red)}
 
-/* Main */
-.main{flex:1;overflow-y:auto;background:var(--bg)}
-.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.header-right{display:flex;align-items:center;gap:10px}
-.avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;cursor:pointer;flex-shrink:0}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;text-decoration:none}
+/* ── Main ── */
+.main{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;flex-shrink:0}
+.header-right{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;text-decoration:none;white-space:nowrap}
 .btn-primary{background:var(--accent);color:white}
 .btn-primary:hover{background:var(--accent2)}
 .btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
 .btn-ghost:hover{color:var(--text);border-color:var(--border2)}
-.content{padding:24px}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.content{padding:22px;flex:1}
 .page{display:none}
 .page.active{display:block}
 
-/* Grid */
+/* ── Grids ── */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 
-/* Cards */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
-.card-sm{padding:16px}
-.card-title{font-size:13px;color:var(--text2);margin-bottom:4px;font-weight:500}
-.card-value{font-size:28px;font-weight:700}
-.card-sub{font-size:12px;color:var(--text3);margin-top:4px}
+/* ── Cards ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px}
+.card-sm{padding:14px}
+.card-title{font-size:12px;color:var(--text2);margin-bottom:3px;font-weight:500}
+.card-value{font-size:26px;font-weight:700}
+.card-sub{font-size:11px;color:var(--text3);margin-top:3px}
 
-/* Progress */
-.progress-bar{height:6px;background:var(--bg4);border-radius:100px;overflow:hidden;margin-top:6px}
+/* ── Progress ── */
+.progress-bar{height:5px;background:var(--bg4);border-radius:100px;overflow:hidden;margin-top:6px}
 .progress-fill{height:100%;border-radius:100px;transition:width .6s ease}
 
-/* Tags */
-.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .tag-green{background:var(--green-bg);color:var(--green)}
 .tag-red{background:var(--red-bg);color:var(--red)}
 .tag-amber{background:var(--amber-bg);color:var(--amber)}
@@ -79,30 +99,28 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .tag-pink{background:var(--pink-bg);color:var(--pink)}
 .tag-blue{background:var(--blue-bg);color:var(--blue)}
 
-/* Section title */
-.section-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+/* ── Section title ── */
+.section-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 
-/* Stat row */
-.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+/* ── Inputs ── */
+.input-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
+.input-field:focus{border-color:var(--accent)}
+.input-label{font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.form-row{margin-bottom:13px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-/* Subject card */
-.subject-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:border-color .15s}
+/* ── Subject cards ── */
+.subject-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;transition:border-color .15s;cursor:pointer}
 .subject-card:hover{border-color:var(--border2)}
-.subject-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.subject-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.stars{color:var(--amber);font-size:13px;letter-spacing:1px}
-.metric-row{display:flex;justify-content:space-between;margin-top:10px}
-.metric{text-align:center}
-.metric-val{font-size:16px;font-weight:700}
-.metric-lbl{font-size:10px;color:var(--text3);margin-top:2px}
+.subject-card.strong-border{border-color:var(--green)}
+.subject-card.weak-border{border-color:var(--red)}
 
-/* Link cards */
-.link-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:border-color .15s}
-.link-card:hover{border-color:var(--accent)}
-.link-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+/* ── Schedule ── */
+.schedule-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.schedule-time{font-size:11px;color:var(--text3);font-weight:600;width:52px;flex-shrink:0}
+.schedule-block{flex:1;border-radius:0 8px 8px 0;padding:7px 12px}
 
-/* Typing */
+/* ── Typing ── */
 .typing-area{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Courier New',monospace;font-size:15px;line-height:2;position:relative;min-height:80px;cursor:text}
 .typing-text span.correct{color:var(--green)}
 .typing-text span.wrong{color:var(--red);background:rgba(239,68,68,.15)}
@@ -110,86 +128,135 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .typing-text span.pending{color:var(--text3)}
 .typing-input{position:absolute;opacity:0;width:1px;height:1px}
 
-/* Mood */
+/* ── Mood ── */
 .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.mood-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:all .15s;font-size:22px}
+.mood-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:all .15s;font-size:20px}
 .mood-btn:hover,.mood-btn.selected{border-color:var(--accent);background:var(--accent-bg)}
 .mood-label{font-size:10px;color:var(--text2)}
 
-/* Heatmap */
-.heatmap-grid{display:grid;gap:3px;margin-top:12px}
-.heat-cell{aspect-ratio:1;border-radius:2px}
+/* ── Link cards ── */
+.link-card{display:flex;align-items:center;gap:12px;padding:11px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);text-decoration:none;color:inherit;transition:border-color .15s}
+.link-card:hover{border-color:var(--accent)}
+.link-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 
-/* Timer */
-.timer-circle{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--accent);margin:0 auto}
-.timer-time{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
-.timer-label{font-size:11px;color:var(--text2);margin-top:2px}
+/* ── Timer ── */
+.timer-circle{width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--accent);margin:0 auto}
+.timer-time{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.timer-label{font-size:10px;color:var(--text2);margin-top:2px}
 
-/* Tables */
+/* ── Mock table ── */
 .mock-table{width:100%;border-collapse:collapse}
-.mock-table th{text-align:left;padding:8px 12px;font-size:11px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);letter-spacing:.5px}
-.mock-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.mock-table th{text-align:left;padding:7px 11px;font-size:11px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);letter-spacing:.5px}
+.mock-table td{padding:9px 11px;border-bottom:1px solid var(--border);font-size:13px}
 .mock-table tr:last-child td{border-bottom:none}
 .mock-table tr:hover td{background:var(--bg3)}
 
-/* AI chat */
-.ai-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:0}
-.ai-bubble.user{background:var(--accent-bg);border-color:var(--accent)}
-.ai-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0}
-.ai-msg-row{display:flex;gap:10px;align-items:flex-start}
+/* ── PYQ daily ── */
+.pyq-question{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:12px}
+.pyq-options{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.pyq-option{padding:9px 14px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;font-size:13px;transition:all .15s;text-align:left;background:none;color:var(--text);width:100%}
+.pyq-option:hover{border-color:var(--accent);background:var(--accent-bg)}
+.pyq-option.correct{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.pyq-option.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.pyq-option.reveal-correct{border-color:var(--green);background:var(--green-bg);color:var(--green)}
 
-/* Misc */
-.divider{height:1px;background:var(--border);margin:16px 0}
-.habit-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:14px;flex-shrink:0}
+/* ── Habit ── */
+.habit-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:13px;flex-shrink:0}
 .habit-check.done{background:var(--green);border-color:var(--green);color:white}
-.reward-badge{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
-.badge-icon{font-size:36px;margin-bottom:8px}
-.badge-name{font-size:13px;font-weight:600;margin-bottom:4px}
-.badge-desc{font-size:11px;color:var(--text3)}
-.countdown-tier{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.pyq-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.emergency-btn{width:100%;padding:16px;background:var(--red-bg);border:2px solid var(--red);border-radius:var(--radius-lg);color:var(--red);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;margin-top:16px}
+
+/* ── Reward badge ── */
+.reward-badge{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;text-align:center}
+.badge-icon{font-size:32px;margin-bottom:6px}
+.badge-name{font-size:12px;font-weight:600;margin-bottom:3px}
+.badge-desc{font-size:10px;color:var(--text3)}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:13px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{border-color:var(--green);color:var(--green)}
+#toast.error{border-color:var(--red);color:var(--red)}
+
+/* ── Emergency ── */
+.emergency-btn{width:100%;padding:14px;background:var(--red-bg);border:2px solid var(--red);border-radius:var(--radius-lg);color:var(--red);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;margin-top:16px}
 .emergency-btn:hover{background:rgba(239,68,68,.2)}
-.input-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
-.input-field:focus{border-color:var(--accent)}
-.input-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
-.form-row{margin-bottom:14px}
-.success-story-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}
-.story-accent{position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent)}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:500px;width:100%;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px}
+.divider{height:1px;background:var(--border);margin:14px 0}
 
-/* Mobile hamburger */
+/* ── Heatmap ── */
+.heatmap-grid{display:grid;gap:3px;margin-top:12px}
+.heat-cell{aspect-ratio:1;border-radius:2px}
+
+/* ── Mobile ── */
 .hamburger{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px;font-size:22px}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
-
 @media(max-width:768px){
   .hamburger{display:flex;align-items:center}
   .sidebar{position:fixed;left:-220px;top:0;height:100vh;z-index:50;transition:left .25s}
   .sidebar.open{left:0}
   .sidebar-overlay.open{display:block}
   .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
-  .header-right .btn{display:none}
+  .header-right .btn:not(.btn-primary){display:none}
 }
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- ═══════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">S</div>
+      <div><div style="font-size:18px;font-weight:800">SSC Edge</div><div style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.5px">CGL PREP PLATFORM</div></div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+      <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign up</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+    <!-- Login form -->
+    <div id="loginForm">
+      <div class="form-row"><div class="input-label">Email</div><input class="input-field" id="loginEmail" type="email" placeholder="you@email.com"></div>
+      <div class="form-row"><div class="input-label">Password</div><input class="input-field" id="loginPassword" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary" style="width:100%;padding:11px;font-size:14px" onclick="doLogin()" id="loginBtn"><i class="ti ti-login"></i>Login</button>
+    </div>
+    <!-- Signup form -->
+    <div id="signupForm" style="display:none">
+      <div class="form-row"><div class="input-label">Your name</div><input class="input-field" id="signupName" type="text" placeholder="e.g. Sidharth Kumar"></div>
+      <div class="form-row"><div class="input-label">Email</div><input class="input-field" id="signupEmail" type="email" placeholder="you@email.com"></div>
+      <div class="form-row"><div class="input-label">Password (min 6 chars)</div><input class="input-field" id="signupPassword" type="password" placeholder="Create a password" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div class="form-row"><div class="input-label">SSC CGL exam date</div><input class="input-field" id="signupExamDate" type="date" value="2027-01-03"></div>
+      <button class="btn btn-primary" style="width:100%;padding:11px;font-size:14px" onclick="doSignup()" id="signupBtn"><i class="ti ti-user-plus"></i>Create account</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--text3)">
+      Free forever · No credit card needed · Your data is safe
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     MAIN APP
+═══════════════════════════════ -->
+<div class="app hidden" id="appShell">
 
 <!-- Sidebar overlay (mobile) -->
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">S</div>
-    <div>
-      <div class="logo-text">SSC Edge</div>
-      <div class="logo-sub">CGL PREP PLATFORM</div>
-    </div>
+    <div><div class="logo-text">SSC Edge</div><div class="logo-sub">CGL PREP</div></div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Main</div>
@@ -201,343 +268,273 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
   <div class="nav-section">
     <div class="nav-label">Analytics</div>
     <button class="nav-item" onclick="showPage('mock')"><i class="ti ti-chart-bar"></i>Mock Tests</button>
-    <button class="nav-item" onclick="showPage('pyq')"><i class="ti ti-history"></i>PYQ Tracker</button>
+    <button class="nav-item" onclick="showPage('pyq')"><i class="ti ti-history"></i>Daily Questions</button>
     <button class="nav-item" onclick="showPage('heatmap')"><i class="ti ti-map"></i>Chapter Heatmap</button>
   </div>
   <div class="nav-section">
     <div class="nav-label">Tools</div>
-    <button class="nav-item" onclick="showPage('aimentor')"><i class="ti ti-robot"></i>AI Mentor<span class="nav-badge">AI</span></button>
+    <button class="nav-item" onclick="showPage('aimentor')"><i class="ti ti-robot"></i>AI Mentor</button>
     <button class="nav-item" onclick="showPage('motivation')"><i class="ti ti-flame"></i>Motivation</button>
-    <button class="nav-item" onclick="showPage('habits')"><i class="ti ti-heart"></i>Habit Tracker</button>
+    <button class="nav-item" onclick="showPage('habits')"><i class="ti ti-heart"></i>Habits</button>
+    <button class="nav-item" onclick="showPage('resources')"><i class="ti ti-link"></i>My Resources</button>
     <button class="nav-item" onclick="showPage('rewards')"><i class="ti ti-award"></i>Rewards</button>
   </div>
   <div class="nav-section" style="margin-top:auto">
-    <div class="nav-label">Account</div>
-    <button class="nav-item" onclick="showPage('profile')"><i class="ti ti-user"></i>Profile</button>
     <button class="nav-item" onclick="showPage('settings')"><i class="ti ti-settings"></i>Settings</button>
+  </div>
+  <div class="user-chip">
+    <div class="user-chip-avatar" id="sidebarAvatar">S</div>
+    <div class="user-chip-name" id="sidebarName">Loading...</div>
+    <button class="logout-btn" onclick="doLogout()" title="Logout"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 
-<!-- Main -->
-<div class="main" id="main">
+<div class="main">
   <div class="header">
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
       <button class="hamburger" onclick="openSidebar()"><i class="ti ti-menu-2"></i></button>
       <div>
-        <div style="font-size:17px;font-weight:700" id="pageTitle">Good morning, Sidharth 👋</div>
-        <div style="font-size:12px;color:var(--text2)" id="pageSubtitle">SSC CGL 2026 — Keep the streak alive!</div>
+        <div style="font-size:16px;font-weight:700" id="pageTitle">Dashboard</div>
+        <div style="font-size:11px;color:var(--text2)" id="pageSubtitle">SSC CGL 2026</div>
       </div>
     </div>
     <div class="header-right">
-      <a class="btn btn-ghost" href="https://monkeytype.com" target="_blank"><i class="ti ti-keyboard"></i>Typing</a>
-      <button class="btn btn-primary" onclick="showPage('planner')"><i class="ti ti-plus"></i>Log session</button>
-      <div class="avatar" id="avatarBtn">S</div>
+      <button class="btn btn-ghost btn-sm" onclick="showPage('pyq')"><i class="ti ti-bolt"></i>Daily Qs</button>
+      <button class="btn btn-primary btn-sm" onclick="openMockModal()"><i class="ti ti-plus"></i>Log mock</button>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- ══ DASHBOARD ══ -->
   <div class="page active content" id="page-dashboard">
-    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-color:#2a2a4a;padding:24px">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <!-- Countdown banner -->
+    <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-color:#2a2a4a;padding:22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
         <div>
-          <div style="font-size:12px;color:var(--text2);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">SSC CGL 2026 — Time Left</div>
-          <div style="font-size:42px;font-weight:800;color:white;line-height:1"><span id="daysLeft">187</span> <span style="font-size:18px;color:var(--text2);font-weight:500">days</span></div>
-          <div style="font-size:13px;color:var(--text2);margin-top:6px">Exam: <span style="color:var(--amber);font-weight:600" id="examDateDisplay">Jan 3, 2027</span> · <a href="#" onclick="showPage('settings');return false" style="color:var(--accent)">Change</a></div>
+          <div style="font-size:11px;color:var(--text2);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">SSC CGL — Time Left</div>
+          <div style="font-size:40px;font-weight:800;color:white;line-height:1"><span id="daysLeft">--</span> <span style="font-size:16px;color:var(--text2);font-weight:500">days</span></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">Exam: <span style="color:var(--amber);font-weight:600" id="examDateDisplay">--</span> · <a href="#" onclick="showPage('settings');return false" style="color:var(--accent)">Change</a></div>
         </div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap">
-          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--amber)">🔥 58</div><div style="font-size:11px;color:var(--text3)">Day streak</div></div>
-          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--green)">83%</div><div style="font-size:11px;color:var(--text3)">Avg accuracy</div></div>
-          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--accent)">42 WPM</div><div style="font-size:11px;color:var(--text3)">Typing speed</div></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--amber)" id="streakDisplay">🔥 0</div><div style="font-size:10px;color:var(--text3)">Day streak</div></div>
+          <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--green)" id="avgAccDisplay">--%</div><div style="font-size:10px;color:var(--text3)">Avg accuracy</div></div>
+          <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)" id="typingWpmDisplay">-- WPM</div><div style="font-size:10px;color:var(--text3)">Typing speed</div></div>
         </div>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:20px;border-left:4px solid var(--accent)">
-      <div style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:8px">🤖 AI MENTOR MESSAGE</div>
-      <div style="font-size:15px;line-height:1.7">"You lost only <strong style="color:var(--amber)">3 marks</strong> last mock because of English synonyms. You're already above the expected cutoff. Today's mission: <strong style="color:var(--green)">30 minutes on synonyms + antonyms</strong> — that alone could push your score by 6 marks."</div>
-      <div style="margin-top:8px;font-size:12px;color:var(--text3)">Based on your last mock (145/200) and weak area analysis</div>
+    <!-- AI message -->
+    <div class="card" style="margin-bottom:18px;border-left:4px solid var(--accent)">
+      <div style="font-size:10px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:6px">🤖 AI MENTOR MESSAGE</div>
+      <div style="font-size:14px;line-height:1.7" id="aiDailyMsg">Loading your personalised message...</div>
+      <div style="margin-top:6px;font-size:11px;color:var(--text3)">Based on your mock scores and weak areas</div>
     </div>
 
-    <div class="grid-4" style="margin-bottom:20px">
-      <div class="card card-sm"><div class="card-title">Hours studied today</div><div class="card-value" style="color:var(--blue)">3.5h</div><div class="progress-bar"><div class="progress-fill" style="width:58%;background:var(--blue)"></div></div><div class="card-sub">Target: 6h</div></div>
-      <div class="card card-sm"><div class="card-title">Questions solved</div><div class="card-value" style="color:var(--green)">87</div><div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--green)"></div></div><div class="card-sub">Target: 120</div></div>
-      <div class="card card-sm"><div class="card-title">Current rank</div><div class="card-value" style="color:var(--amber)">#142</div><div class="card-sub" style="margin-top:8px">↑ 23 from yesterday</div></div>
-      <div class="card card-sm"><div class="card-title">Predicted score</div><div class="card-value" style="color:var(--accent)">162</div><div class="card-sub" style="margin-top:8px">72% selection chance</div></div>
+    <div class="grid-4" style="margin-bottom:18px">
+      <div class="card card-sm"><div class="card-title">Last mock score</div><div class="card-value" style="color:var(--accent)" id="lastMockDisplay">--/200</div><div class="card-sub" id="lastMockDate">No mock logged yet</div></div>
+      <div class="card card-sm"><div class="card-title">Mocks taken</div><div class="card-value" style="color:var(--blue)" id="mockCountDisplay">0</div><div class="card-sub">Total logged</div></div>
+      <div class="card card-sm"><div class="card-title">Best mock score</div><div class="card-value" style="color:var(--green)" id="bestMockDisplay">--</div><div class="card-sub">Personal best</div></div>
+      <div class="card card-sm"><div class="card-title">Daily Qs today</div><div class="card-value" style="color:var(--amber)" id="dailyQsDone">0/10</div><div class="card-sub" id="dailyQsAcc">--% accuracy</div></div>
     </div>
 
-    <div class="grid-2" style="margin-bottom:20px">
+    <div class="grid-2" style="margin-bottom:18px">
+      <!-- Today's tasks -->
       <div class="card">
         <div class="section-title"><i class="ti ti-check" style="color:var(--green)"></i>Today's targets</div>
-        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brain"></i></div><div><div style="font-size:13px;font-weight:500">Reasoning — 50 Qs</div><div style="font-size:11px;color:var(--text3)">Seating arrangement</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--green)"><i class="ti ti-circle-check-filled" style="font-size:20px"></i></div></div>
-        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div>
-        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-calculator"></i></div><div><div style="font-size:13px;font-weight:500">Quant — 40 Qs</div><div style="font-size:11px;color:var(--text3)">Percentage & Profit/Loss</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
-        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:62%;background:var(--blue)"></div></div>
-        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-vocabulary"></i></div><div><div style="font-size:13px;font-weight:500">English — 30 Qs</div><div style="font-size:11px;color:var(--text3)">Synonyms + Antonyms ⚡</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
-        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:30%;background:var(--amber)"></div></div>
-        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-world"></i></div><div><div style="font-size:13px;font-weight:500">GK Revision</div><div style="font-size:11px;color:var(--text3)">Current affairs + Static</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
-        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:0%;background:var(--pink)"></div></div>
-        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">Typing — 20 min</div><div style="font-size:11px;color:var(--text3)">Target: 45 WPM · <a href="https://monkeytype.com" target="_blank" style="color:var(--teal)">MonkeyType ↗</a></div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--teal)"></div></div>
+        <div id="dashSchedule" style="font-size:13px;color:var(--text2)">Set your schedule in the Study Planner →</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card">
-          <div class="section-title"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Weak areas</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">English Synonyms</span><span class="tag tag-red">54%</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Geometry</span><span class="tag tag-amber">61%</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Static GK</span><span class="tag tag-amber">65%</span></div>
-            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Seating Arrangement</span><span class="tag tag-green">79%</span></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Quick links</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-            <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook Mocks</div><div style="font-size:11px;color:var(--text3)">Free SSC CGL mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-            <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Notifications & syllabus</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+      <!-- Weak areas from subjects -->
+      <div class="card">
+        <div class="section-title"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Your weak subjects</div>
+        <div id="weakSubjectsList" style="font-size:13px;color:var(--text2)">Mark subjects as weak in the Subjects tab →</div>
+        <div style="margin-top:12px">
+          <div class="section-title" style="margin-bottom:8px"><i class="ti ti-external-link" style="color:var(--accent)"></i>Quick links</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:12px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:13px"></i></a>
+            <a href="https://www.typeinhindi.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:12px;font-weight:500">TypeInHindi</div><div style="font-size:11px;color:var(--text3)">Hindi typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:13px"></i></a>
           </div>
         </div>
       </div>
     </div>
-    <button class="emergency-btn" onclick="showEmergency()"><i class="ti ti-heart-broken" style="font-size:20px"></i>I want to quit — show me why I started</button>
+    <button class="emergency-btn" onclick="openEmergency()"><i class="ti ti-heart-broken" style="font-size:18px"></i>I want to quit — show me why I started</button>
   </div>
 
-  <!-- SUBJECTS -->
+  <!-- ══ SUBJECTS ══ -->
   <div class="page content" id="page-subjects">
-    <div class="section-title">Subject tracker</div>
-    <div class="grid-3" style="margin-bottom:20px">
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brain"></i></div><div><div style="font-weight:600">Reasoning</div><div class="tag tag-green" style="margin-top:4px">Strong</div></div></div><span class="stars">★★★★★</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--accent)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--accent)">78%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">87%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">4×</div><div class="metric-lbl">Revisions</div></div></div></div>
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-calculator"></i></div><div><div style="font-weight:600">Quantitative</div><div class="tag tag-amber" style="margin-top:4px">Improving</div></div></div><span class="stars">★★★★☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--blue)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--blue)">62%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">81%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">3×</div><div class="metric-lbl">Revisions</div></div></div></div>
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-vocabulary"></i></div><div><div style="font-weight:600">English</div><div class="tag tag-red" style="margin-top:4px">Weak</div></div></div><span class="stars">★★★☆☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--amber)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--amber)">45%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--red)">67%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--red)">2×</div><div class="metric-lbl">Revisions</div></div></div></div>
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-world"></i></div><div><div style="font-weight:600">General Awareness</div><div class="tag tag-amber" style="margin-top:4px">Improving</div></div></div><span class="stars">★★★☆☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:55%;background:var(--pink)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--pink)">55%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">72%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">2×</div><div class="metric-lbl">Revisions</div></div></div></div>
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-device-laptop"></i></div><div><div style="font-weight:600">Computer</div><div class="tag tag-green" style="margin-top:4px">Strong</div></div></div><span class="stars">★★★★★</span></div><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--teal)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--teal)">90%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">93%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">5×</div><div class="metric-lbl">Revisions</div></div></div></div>
-      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-keyboard"></i></div><div><div style="font-weight:600">Typing</div><div class="tag tag-amber" style="margin-top:4px">42 WPM</div></div></div><span class="stars">★★★★☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:70%;background:var(--green)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--green)">42</div><div class="metric-lbl">WPM</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">96%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--teal)">24d</div><div class="metric-lbl">Streak</div></div></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-title" style="margin-bottom:0">Subject tracker</div>
+      <div style="font-size:12px;color:var(--text2)">Click a subject to toggle Strong / Weak</div>
     </div>
-    <div class="card">
+    <div class="grid-3" id="subjectGrid"></div>
+    <div class="card" style="margin-top:16px">
       <div class="section-title"><i class="ti ti-repeat" style="color:var(--accent)"></i>Spaced revision schedule</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">Today</div><div style="font-weight:600;color:var(--accent);margin-top:2px">Ratios</div></div>
-        <span style="color:var(--text3);font-size:20px">→</span>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+1 day</div><div style="font-weight:600;color:var(--blue);margin-top:2px">Revise ↺</div></div>
-        <span style="color:var(--text3);font-size:20px">→</span>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+3 days</div><div style="font-weight:600;color:var(--green);margin-top:2px">Review</div></div>
-        <span style="color:var(--text3);font-size:20px">→</span>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+7 days</div><div style="font-weight:600;color:var(--amber);margin-top:2px">Reinforce</div></div>
-        <span style="color:var(--text3);font-size:20px">→</span>
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+15 days</div><div style="font-weight:600;color:var(--pink);margin-top:2px">Final</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;text-align:center"><div style="font-size:10px;color:var(--text3)">Today</div><div style="font-weight:600;color:var(--accent);margin-top:1px">Study</div></div>
+        <span style="color:var(--text3);font-size:18px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;text-align:center"><div style="font-size:10px;color:var(--text3)">+1 day</div><div style="font-weight:600;color:var(--blue);margin-top:1px">Revise ↺</div></div>
+        <span style="color:var(--text3);font-size:18px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;text-align:center"><div style="font-size:10px;color:var(--text3)">+3 days</div><div style="font-weight:600;color:var(--green);margin-top:1px">Review</div></div>
+        <span style="color:var(--text3);font-size:18px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;text-align:center"><div style="font-size:10px;color:var(--text3)">+7 days</div><div style="font-weight:600;color:var(--amber);margin-top:1px">Reinforce</div></div>
+        <span style="color:var(--text3);font-size:18px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;text-align:center"><div style="font-size:10px;color:var(--text3)">+15 days</div><div style="font-weight:600;color:var(--pink);margin-top:1px">Final</div></div>
       </div>
     </div>
   </div>
 
-  <!-- PLANNER -->
+  <!-- ══ PLANNER ══ -->
   <div class="page content" id="page-planner">
-    <div class="section-title"><i class="ti ti-robot" style="color:var(--accent)"></i>AI study planner</div>
-    <div class="grid-2" style="margin-bottom:20px">
+    <div class="section-title"><i class="ti ti-calendar" style="color:var(--accent)"></i>Study planner</div>
+    <div class="grid-2" style="margin-bottom:18px">
+      <!-- Schedule builder -->
       <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Configure your plan</div>
-        <div class="form-row"><div class="input-label">Exam date</div><input type="date" class="input-field" id="examDateInput" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
-        <div class="form-row"><div class="input-label">Hours per day</div><input type="range" min="1" max="12" value="6" oninput="document.getElementById('hoursVal').textContent=this.value+'h'" style="width:100%;margin-bottom:4px"><div style="text-align:right;font-size:13px;color:var(--accent);font-weight:600" id="hoursVal">6h</div></div>
-        <div class="form-row"><div class="input-label">Weak subjects</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
-            <div class="tag tag-red" style="cursor:pointer;padding:6px 12px" onclick="this.className=this.className.includes('red')?'tag tag-accent':'tag tag-red'">English</div>
-            <div class="tag tag-accent" style="cursor:pointer;padding:6px 12px" onclick="this.className=this.className.includes('red')?'tag tag-accent':'tag tag-red'">Quant</div>
-            <div class="tag tag-amber" style="cursor:pointer;padding:6px 12px">GK</div>
-            <div class="tag tag-green" style="cursor:pointer;padding:6px 12px">Reasoning</div>
-          </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Build your daily schedule</div>
+        <div id="scheduleSlots">
+          <!-- slots rendered by JS -->
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="generatePlan(this)"><i class="ti ti-robot"></i>Generate AI plan</button>
+        <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="addScheduleSlot()"><i class="ti ti-plus"></i>Add time slot</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveSchedule()"><i class="ti ti-device-floppy"></i>Save schedule</button>
       </div>
+      <!-- Preview -->
       <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Today's schedule</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">6:00 AM</div><div style="flex:1;background:var(--accent-bg);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Reasoning — Syllogisms</div><div style="font-size:11px;color:var(--text3)">1h · 25 questions</div></div></div>
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">7:30 AM</div><div style="flex:1;background:var(--blue-bg);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Quant — Percentage</div><div style="font-size:11px;color:var(--text3)">1h · 20 questions</div></div></div>
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">9:00 AM</div><div style="flex:1;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">English — Synonyms ⚡</div><div style="font-size:11px;color:var(--text3)">45 min — boosted (weak area)</div></div></div>
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">10:30 AM</div><div style="flex:1;background:var(--bg3);border-left:3px solid var(--text3);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Break</div><div style="font-size:11px;color:var(--text3)">1.5h</div></div></div>
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">12:00 PM</div><div style="flex:1;background:var(--pink-bg);border-left:3px solid var(--pink);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">GK — Current Affairs</div><div style="font-size:11px;color:var(--text3)">45 min</div></div></div>
-          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">1:00 PM</div><div style="flex:1;background:var(--teal-bg);border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Typing — 20 min</div><div style="font-size:11px;color:var(--text3)"><a href="https://monkeytype.com" target="_blank" style="color:var(--teal)">MonkeyType ↗</a> · Target 45 WPM</div></div></div>
-        </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Today's schedule preview</div>
+        <div id="schedulePreview" style="font-size:13px;color:var(--text2)">Add slots on the left and save to see your schedule here.</div>
       </div>
     </div>
+    <!-- Pomodoro -->
     <div class="card">
-      <div class="section-title"><i class="ti ti-clock" style="color:var(--amber)"></i>Pomodoro timer</div>
+      <div class="section-title"><i class="ti ti-clock" style="color:var(--amber)"></i>Pomodoro focus timer</div>
       <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap">
-        <div class="timer-circle" id="timerCircle"><div class="timer-time" id="timerDisplay">25:00</div><div class="timer-label" id="timerLabel">Focus session</div></div>
+        <div class="timer-circle" id="timerCircle">
+          <div class="timer-time" id="timerDisplay">25:00</div>
+          <div class="timer-label" id="timerLabel">Focus</div>
+        </div>
         <div>
-          <div style="display:flex;gap:10px;margin-bottom:16px">
+          <div style="display:flex;gap:10px;margin-bottom:14px">
             <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()"><i class="ti ti-player-play"></i>Start</button>
             <button class="btn btn-ghost" onclick="resetTimer()"><i class="ti ti-refresh"></i>Reset</button>
           </div>
-          <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Sessions today: <strong style="color:var(--amber)">3 × 25 min</strong></div>
-          <div style="font-size:13px;color:var(--text2)">Total focus: <strong style="color:var(--accent)">1h 15min</strong></div>
+          <div style="font-size:12px;color:var(--text2)">Sessions today: <strong style="color:var(--amber)" id="pomodoroCount">0</strong></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TYPING -->
+  <!-- ══ TYPING ══ -->
   <div class="page content" id="page-typing">
     <div class="section-title"><i class="ti ti-keyboard" style="color:var(--teal)"></i>Typing practice</div>
-    <div class="grid-4" style="margin-bottom:20px">
+    <div class="grid-4" style="margin-bottom:18px">
       <div class="card card-sm"><div class="card-title">WPM</div><div class="card-value" style="color:var(--teal)" id="wpmDisplay">0</div></div>
       <div class="card card-sm"><div class="card-title">Accuracy</div><div class="card-value" style="color:var(--green)" id="accDisplay">100%</div></div>
       <div class="card card-sm"><div class="card-title">Errors</div><div class="card-value" style="color:var(--red)" id="errDisplay">0</div></div>
       <div class="card card-sm"><div class="card-title">Time</div><div class="card-value" style="color:var(--accent)" id="timeDisplay">0s</div></div>
     </div>
-    <div class="card" style="margin-bottom:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-size:13px;font-weight:500">Click below and start typing</div>
-        <button class="btn btn-ghost" onclick="resetTyping()" style="font-size:12px;padding:6px 10px"><i class="ti ti-refresh"></i>New text</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetTyping()"><i class="ti ti-refresh"></i>New text</button>
       </div>
       <div class="typing-area" onclick="document.getElementById('typingInput').focus()">
         <div class="typing-text" id="typingText"></div>
         <input class="typing-input" id="typingInput" oninput="handleTyping(event)" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-primary btn-sm" onclick="saveTypingResult()" id="saveTypingBtn" style="display:none"><i class="ti ti-device-floppy"></i>Save this result</button>
+      </div>
     </div>
     <div class="grid-2">
       <div class="card">
         <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Practice resources</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">Best English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://www.typeinhindi.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">TypeInHindi.com</div><div style="font-size:11px;color:var(--text3)">Hindi typing for Tier 2</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://10fastfingers.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-trophy"></i></div><div><div style="font-size:13px;font-weight:500">10FastFingers</div><div style="font-size:11px;color:var(--text3)">Speed competitions</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://www.typingclub.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-certificate"></i></div><div><div style="font-size:13px;font-weight:500">TypingClub</div><div style="font-size:11px;color:var(--text3)">Structured lessons</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:12px;font-weight:500">MonkeyType</div><div style="font-size:10px;color:var(--text3)">Best English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
+          <a href="https://www.typeinhindi.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:12px;font-weight:500">TypeInHindi</div><div style="font-size:10px;color:var(--text3)">Hindi Tier 2</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
+          <a href="https://10fastfingers.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-trophy"></i></div><div><div style="font-size:12px;font-weight:500">10FastFingers</div><div style="font-size:10px;color:var(--text3)">Speed competitions</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
         </div>
       </div>
       <div class="card">
-        <div class="section-title"><i class="ti ti-chart-line" style="color:var(--teal)"></i>Your progress</div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">Current WPM</span><span style="font-weight:600;color:var(--teal)">42</span></div><div class="progress-bar"><div class="progress-fill" style="width:56%;background:var(--teal)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">SSC CGL requirement</span><span style="font-weight:600;color:var(--green)">35 WPM ✓</span></div><div class="progress-bar"><div class="progress-fill" style="width:46%;background:var(--green)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">Personal target</span><span style="font-weight:600;color:var(--amber)">55 WPM</span></div><div class="progress-bar"><div class="progress-fill" style="width:73%;background:var(--amber)"></div></div></div>
-        </div>
+        <div class="section-title"><i class="ti ti-chart-line" style="color:var(--teal)"></i>Typing history</div>
+        <div id="typingHistory" style="font-size:13px;color:var(--text2)">No sessions saved yet. Complete a test above and save it.</div>
       </div>
     </div>
   </div>
 
-  <!-- MOCK -->
+  <!-- ══ MOCK TESTS ══ -->
   <div class="page content" id="page-mock">
-    <div class="section-title"><i class="ti ti-chart-bar" style="color:var(--accent)"></i>Mock test analysis</div>
-    <div class="grid-4" style="margin-bottom:20px">
-      <div class="card card-sm"><div class="card-title">Last mock score</div><div class="card-value" style="color:var(--accent)">145/200</div><div class="card-sub">78th percentile</div></div>
-      <div class="card card-sm"><div class="card-title">Negative marks</div><div class="card-value" style="color:var(--red)">-8.5</div><div class="card-sub">34 wrong × 0.25</div></div>
-      <div class="card card-sm"><div class="card-title">Avg speed</div><div class="card-value" style="color:var(--green)">1.2s</div><div class="card-sub">per question</div></div>
-      <div class="card card-sm"><div class="card-title">Guess accuracy</div><div class="card-value" style="color:var(--amber)">62%</div><div class="card-sub">11 guesses, 7 right</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-title" style="margin-bottom:0"><i class="ti ti-chart-bar" style="color:var(--accent)"></i>Mock test analysis</div>
+      <button class="btn btn-primary btn-sm" onclick="openMockModal()"><i class="ti ti-plus"></i>Log new mock</button>
     </div>
-    <div class="card" style="margin-bottom:20px">
-      <div class="section-title">Subject breakdown</div>
-      <table class="mock-table">
-        <thead><tr><th>Subject</th><th>Attempted</th><th>Correct</th><th>Wrong</th><th>Accuracy</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Reasoning</td><td>25/25</td><td>22</td><td>3</td><td><span class="tag tag-green">88%</span></td><td><span class="tag tag-green">Strong</span></td></tr>
-          <tr><td>Quantitative</td><td>24/25</td><td>20</td><td>4</td><td><span class="tag tag-green">83%</span></td><td><span class="tag tag-green">Good</span></td></tr>
-          <tr><td>English</td><td>22/25</td><td>13</td><td>9</td><td><span class="tag tag-red">59%</span></td><td><span class="tag tag-red">⚡ Focus here</span></td></tr>
-          <tr><td>General Awareness</td><td>25/25</td><td>18</td><td>7</td><td><span class="tag tag-amber">72%</span></td><td><span class="tag tag-amber">Needs work</span></td></tr>
-        </tbody>
-      </table>
+    <div class="grid-4" style="margin-bottom:18px">
+      <div class="card card-sm"><div class="card-title">Last score</div><div class="card-value" style="color:var(--accent)" id="mockLastScore">--</div><div class="card-sub" id="mockLastDate">No mock yet</div></div>
+      <div class="card card-sm"><div class="card-title">Total mocks</div><div class="card-value" style="color:var(--blue)" id="mockTotal">0</div><div class="card-sub">Tests logged</div></div>
+      <div class="card card-sm"><div class="card-title">Best score</div><div class="card-value" style="color:var(--green)" id="mockBest">--</div><div class="card-sub">Personal best</div></div>
+      <div class="card card-sm"><div class="card-title">Avg score</div><div class="card-value" style="color:var(--amber)" id="mockAvg">--</div><div class="card-sub">All mocks avg</div></div>
     </div>
-    <div class="card">
-      <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Free mock test sites</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook</div><div style="font-size:11px;color:var(--text3)">SSC CGL full mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-        <a href="https://www.oliveboard.in/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Oliveboard</div><div style="font-size:11px;color:var(--text3)">AI adaptive mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-        <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Official pattern</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-        <a href="https://www.youtube.com/@sscadda" target="_blank" class="link-card"><div class="link-icon" style="background:var(--red-bg);color:var(--red)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">SSC Adda</div><div style="font-size:11px;color:var(--text3)">Free video solutions</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-      </div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="section-title">Mock history</div>
+      <div id="mockHistoryTable" style="font-size:13px;color:var(--text2)">No mocks logged yet. Click "Log new mock" to add your first score.</div>
     </div>
   </div>
 
-  <!-- PYQ -->
+  <!-- ══ DAILY QUESTIONS ══ -->
   <div class="page content" id="page-pyq">
-    <div class="section-title"><i class="ti ti-history" style="color:var(--amber)"></i>Previous Year Questions</div>
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select class="input-field" style="width:auto"><option>All subjects</option><option>Reasoning</option><option>Quant</option><option>English</option><option>GK</option></select>
-        <select class="input-field" style="width:auto"><option>All years</option><option>2024</option><option>2023</option><option>2022</option></select>
-        <select class="input-field" style="width:auto"><option>All difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="section-title" style="margin-bottom:0"><i class="ti ti-bolt" style="color:var(--amber)"></i>Daily questions — AI generated</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--text2)" id="pyqScore">0/0 correct today</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>New set</button>
       </div>
     </div>
-    <div class="card">
-      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">A train covers 360 km at 60 km/h. What is the time taken?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-green">Easy</span><span class="tag tag-accent">Quant — Speed/Time</span><span style="font-size:11px;color:var(--text3)">CGL 2023 · Appeared 4×</span></div></div><div class="tag tag-green">Solved</div></div>
-      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">Choose the synonym of ELOQUENT.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-amber">Medium</span><span class="tag tag-amber">English — Synonyms</span><span style="font-size:11px;color:var(--text3)">CGL 2022 · Appeared 6×</span></div></div><div class="tag tag-red">Unsolved</div></div>
-      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">Who is the first woman President of India?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-green">Easy</span><span class="tag tag-pink">GK — Polity</span><span style="font-size:11px;color:var(--text3)">CGL 2024 · Appeared 2×</span></div></div><div class="tag tag-green">Solved</div></div>
-      <div class="pyq-row" style="border-bottom:none"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">All dogs are animals. All animals are living beings. Conclusion?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-red">Hard</span><span class="tag tag-accent">Reasoning — Syllogism</span><span style="font-size:11px;color:var(--text3)">CGL 2021 · Appeared 8×</span></div></div><div class="tag tag-amber">In progress</div></div>
+    <div id="pyqContainer">
+      <div style="text-align:center;padding:40px;color:var(--text2)"><i class="ti ti-loader" style="font-size:32px;color:var(--accent)"></i><div style="margin-top:12px">Generating today's questions...</div></div>
     </div>
   </div>
 
-  <!-- HEATMAP -->
+  <!-- ══ HEATMAP ══ -->
   <div class="page content" id="page-heatmap">
     <div class="section-title"><i class="ti ti-map" style="color:var(--accent)"></i>Chapter heatmap</div>
-    <div class="card" style="margin-bottom:20px">
-      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--green);border-radius:3px"></div>Completed</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--amber);border-radius:3px"></div>Needs revision</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--red);border-radius:3px"></div>Weak</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--bg4);border-radius:3px"></div>Not started</div>
+    <div class="card" style="margin-bottom:18px">
+      <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;background:var(--green);border-radius:2px"></div>Completed</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;background:var(--amber);border-radius:2px"></div>Needs revision</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;background:var(--red);border-radius:2px"></div>Weak</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;background:var(--bg4);border-radius:2px"></div>Not started</div>
       </div>
       <div id="heatmap" class="heatmap-grid" style="grid-template-columns:repeat(15,1fr)"></div>
     </div>
-    <div class="grid-2">
-      <div class="card"><div class="section-title">Reasoning</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Seating Arrangement</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:90%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Syllogism</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:70%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Blood Relations</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:85%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Coding-Decoding</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:30%;background:var(--red)"></div></div><span class="tag tag-red">Weak</span></div></div>
-        </div>
-      </div>
-      <div class="card"><div class="section-title">Quantitative</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Percentage</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:80%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Geometry</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:40%;background:var(--red)"></div></div><span class="tag tag-red">Weak</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Profit & Loss</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:75%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Algebra</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:60%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <!-- AI MENTOR -->
+  <!-- ══ AI MENTOR ══ -->
   <div class="page content" id="page-aimentor">
     <div class="section-title"><i class="ti ti-robot" style="color:var(--accent)"></i>SSC Mentor — AI powered</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:280px">
-        <div class="card" style="height:380px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:12px" id="chatWindow">
-          <div class="ai-msg-row"><div class="ai-avatar"><i class="ti ti-robot" style="font-size:16px"></i></div><div class="ai-bubble" style="flex:1"><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div><div style="font-size:13px;line-height:1.7">Hello! Based on your progress:<br><br>📊 Mock: <strong>145/200</strong> — above average<br>⚡ Weak: <strong>English synonyms</strong> (54%)<br>🔥 Streak: <strong>58 days</strong> — incredible!<br><br>Start with synonyms today before fatigue sets in. You're closer to selection than you think!</div></div></div>
-        </div>
+      <div style="flex:1;min-width:260px">
+        <div class="card" style="height:360px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:10px" id="chatWindow"></div>
         <div style="display:flex;gap:8px">
           <input class="input-field" id="mentorInput" placeholder="Ask anything — doubts, motivation, strategy..." onkeydown="if(event.key==='Enter')sendMentorMsg()" style="flex:1">
           <button class="btn btn-primary" onclick="sendMentorMsg()"><i class="ti ti-send"></i></button>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">I'm demotivated</button>
-          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">How to improve English?</button>
-          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">Last 30 days strategy</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAsk('I am feeling demotivated')">Feeling demotivated</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAsk('How to improve my weakest subject?')">Improve weak subject</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickAsk('Give me a last 30 days strategy')">Last 30 days plan</button>
         </div>
       </div>
-      <div style="width:220px;display:flex;flex-direction:column;gap:12px;flex-shrink:0">
+      <div style="width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:12px">
         <div class="card card-sm">
-          <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:10px">Your snapshot</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Mock score</div><div style="font-weight:700;font-size:18px;color:var(--accent);margin-bottom:10px">145/200</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Study streak</div><div style="font-weight:700;font-size:18px;color:var(--amber);margin-bottom:10px">🔥 58 days</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Typing speed</div><div style="font-weight:700;font-size:18px;color:var(--teal)">42 WPM</div>
-        </div>
-        <div class="card card-sm">
-          <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:10px">Success story</div>
-          <div class="success-story-card">
-            <div class="story-accent"></div>
-            <div style="padding-left:12px"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Riya Sharma</div><div style="font-size:11px;color:var(--text3)">SSC CGL 2024 — AIR 156</div><div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6">"Failed twice. Third attempt I scored 187. Consistency over brilliance."</div></div>
-          </div>
+          <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:8px">Your stats</div>
+          <div style="font-size:11px;color:var(--text2)">Last mock</div><div style="font-weight:700;font-size:16px;color:var(--accent);margin-bottom:8px" id="mentorMock">--</div>
+          <div style="font-size:11px;color:var(--text2)">Streak</div><div style="font-weight:700;font-size:16px;color:var(--amber);margin-bottom:8px" id="mentorStreak">0 days</div>
+          <div style="font-size:11px;color:var(--text2)">Best typing</div><div style="font-weight:700;font-size:16px;color:var(--teal)" id="mentorTyping">-- WPM</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MOTIVATION -->
+  <!-- ══ MOTIVATION ══ -->
   <div class="page content" id="page-motivation">
     <div class="section-title"><i class="ti ti-flame" style="color:var(--amber)"></i>Daily mood check-in</div>
-    <div class="card" style="margin-bottom:20px">
-      <div style="font-size:14px;font-weight:600;margin-bottom:16px">How was today's study session?</div>
+    <div class="card" style="margin-bottom:18px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px">How was today's study session?</div>
       <div class="mood-grid">
         <div class="mood-btn" onclick="selectMood(this,'excellent')"><span>😁</span><span class="mood-label">Excellent</span></div>
         <div class="mood-btn" onclick="selectMood(this,'good')"><span>🙂</span><span class="mood-label">Good</span></div>
@@ -545,99 +542,75 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
         <div class="mood-btn" onclick="selectMood(this,'bad')"><span>😔</span><span class="mood-label">Bad</span></div>
         <div class="mood-btn" onclick="selectMood(this,'terrible')"><span>😭</span><span class="mood-label">Terrible</span></div>
       </div>
-      <div id="moodResponse" style="margin-top:16px;display:none"></div>
+      <div id="moodResponse" style="margin-top:14px;display:none"></div>
     </div>
     <div class="card">
-      <div class="section-title"><i class="ti ti-clock" style="color:var(--accent)"></i>SSC CGL countdown</div>
+      <div class="section-title"><i class="ti ti-clock" style="color:var(--accent)"></i>SSC CGL stage countdown</div>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Tier 1 — General Studies</div><div style="font-size:11px;color:var(--text3)">100 questions · 60 min</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700" id="t1Days">187 days</div></div>
-        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Tier 2 — Advanced</div><div style="font-size:11px;color:var(--text3)">3 sessions · 2h 30 min each</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">~240 days</div></div>
-        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Typing test</div><div style="font-size:11px;color:var(--text3)">35 WPM English / 30 WPM Hindi</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">~280 days</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">Tier 1</div><div style="font-size:11px;color:var(--text3)">100 Qs · 60 min</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700" id="tier1Days">-- days</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">Tier 2</div><div style="font-size:11px;color:var(--text3)">3 sessions · 2.5h each</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700">~Tier1 + 60d</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">Typing test</div><div style="font-size:11px;color:var(--text3)">35 WPM English / 30 WPM Hindi</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700">~Tier2 + 30d</div></div>
       </div>
     </div>
   </div>
 
-  <!-- HABITS -->
+  <!-- ══ HABITS ══ -->
   <div class="page content" id="page-habits">
-    <div class="section-title"><i class="ti ti-heart" style="color:var(--pink)"></i>Habit tracker</div>
+    <div class="section-title"><i class="ti ti-heart" style="color:var(--pink)"></i>Daily habit tracker</div>
     <div class="card">
-      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Healthy habits = better scores. Tick each one daily.</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-droplet"></i></div><div><div style="font-size:13px;font-weight:500">8 glasses of water</div><div style="font-size:11px;color:var(--text3)">Hydration improves focus</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-run"></i></div><div><div style="font-size:13px;font-weight:500">30 min exercise</div><div style="font-size:11px;color:var(--text3)">Boosts memory retention</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-moon"></i></div><div><div style="font-size:13px;font-weight:500">7–8 hours sleep</div><div style="font-size:11px;color:var(--text3)">Memory consolidation in sleep</div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-leaf"></i></div><div><div style="font-size:13px;font-weight:500">10 min meditation</div><div style="font-size:11px;color:var(--text3)">Reduces exam anxiety</div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-news"></i></div><div><div style="font-size:13px;font-weight:500">Newspaper — 20 min</div><div style="font-size:11px;color:var(--text3)">Current affairs for GK</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">Daily typing practice</div><div style="font-size:11px;color:var(--text3)">Min 20 min · <a href="https://monkeytype.com" target="_blank" style="color:var(--accent)">MonkeyType ↗</a></div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
-      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Tick off each habit. Healthy aspirants score higher.</div>
+      <div style="display:flex;flex-direction:column;gap:12px" id="habitList"></div>
     </div>
   </div>
 
-  <!-- REWARDS -->
+  <!-- ══ MY RESOURCES ══ -->
+  <div class="page content" id="page-resources">
+    <div class="section-title"><i class="ti ti-link" style="color:var(--accent)"></i>My mock test sites</div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Save the websites where you take your mock tests.</div>
+      <div class="form-grid" style="margin-bottom:10px">
+        <div><div class="input-label">Website name</div><input class="input-field" id="resName" placeholder="e.g. Testbook"></div>
+        <div><div class="input-label">URL</div><input class="input-field" id="resUrl" placeholder="https://testbook.com/ssc-cgl"></div>
+      </div>
+      <div class="form-row"><div class="input-label">Notes (optional)</div><input class="input-field" id="resNote" placeholder="e.g. Free mocks, good for Tier 1"></div>
+      <button class="btn btn-primary" onclick="addResource()"><i class="ti ti-plus"></i>Save resource</button>
+    </div>
+    <div id="resourcesList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <!-- ══ REWARDS ══ -->
   <div class="page content" id="page-rewards">
     <div class="section-title"><i class="ti ti-award" style="color:var(--amber)"></i>Rewards</div>
-    <div class="grid-4" style="margin-bottom:20px">
-      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🪙</div><div style="font-size:20px;font-weight:700;color:var(--amber)">2,450</div><div style="font-size:11px;color:var(--text3)">Coins</div></div>
-      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">⭐</div><div style="font-size:20px;font-weight:700;color:var(--accent)">12,800</div><div style="font-size:11px;color:var(--text3)">XP points</div></div>
-      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🏆</div><div style="font-size:20px;font-weight:700;color:var(--green)">8</div><div style="font-size:11px;color:var(--text3)">Badges earned</div></div>
-      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🔥</div><div style="font-size:20px;font-weight:700;color:var(--red)">58</div><div style="font-size:11px;color:var(--text3)">Day streak</div></div>
+    <div class="grid-4" style="margin-bottom:18px">
+      <div class="card card-sm" style="text-align:center"><div style="font-size:26px;margin-bottom:3px">🔥</div><div style="font-size:20px;font-weight:700;color:var(--amber)" id="rewardStreak">0</div><div style="font-size:10px;color:var(--text3)">Day streak</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:26px;margin-bottom:3px">📝</div><div style="font-size:20px;font-weight:700;color:var(--blue)" id="rewardMocks">0</div><div style="font-size:10px;color:var(--text3)">Mocks logged</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:26px;margin-bottom:3px">⌨️</div><div style="font-size:20px;font-weight:700;color:var(--teal)" id="rewardWpm">0</div><div style="font-size:10px;color:var(--text3)">Best WPM</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:26px;margin-bottom:3px">🏆</div><div style="font-size:20px;font-weight:700;color:var(--green)" id="rewardBadges">0</div><div style="font-size:10px;color:var(--text3)">Badges earned</div></div>
     </div>
-    <div class="grid-4">
-      <div class="reward-badge"><div class="badge-icon">🔥</div><div class="badge-name">58-Day Warrior</div><div class="badge-desc">Studied 58 days straight</div></div>
-      <div class="reward-badge"><div class="badge-icon">⌨️</div><div class="badge-name">Typing Adept</div><div class="badge-desc">Reached 40+ WPM</div></div>
-      <div class="reward-badge"><div class="badge-icon">🧠</div><div class="badge-name">Reasoning Ninja</div><div class="badge-desc">90%+ in reasoning mock</div></div>
-      <div class="reward-badge"><div class="badge-icon">📚</div><div class="badge-name">100 Mocks Club</div><div class="badge-desc" style="color:var(--text3)">12 more to unlock</div></div>
-      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">👑</div><div class="badge-name">Quant King</div><div class="badge-desc">95%+ in quant mock</div></div>
-      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🌟</div><div class="badge-name">100-Day Legend</div><div class="badge-desc">42 days to unlock</div></div>
-      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🚀</div><div class="badge-name">Speed Demon</div><div class="badge-desc">Reach 55 WPM</div></div>
-      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🎯</div><div class="badge-name">Cutoff Crusher</div><div class="badge-desc">Score 180+ in mock</div></div>
-    </div>
+    <div class="grid-4" id="badgeGrid"></div>
   </div>
 
-  <!-- PROFILE -->
-  <div class="page content" id="page-profile">
-    <div class="section-title"><i class="ti ti-user" style="color:var(--accent)"></i>Your profile</div>
-    <div class="grid-2">
-      <div class="card">
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px"><div class="avatar" style="width:64px;height:64px;font-size:24px;border-radius:50%" id="bigAvatar">S</div><div><div style="font-size:18px;font-weight:700" id="profileName">Sidharth Kumar</div><div style="font-size:13px;color:var(--text2)">sidharth@email.com</div><div class="tag tag-accent" style="margin-top:6px">SSC CGL Aspirant</div></div></div>
-        <div class="divider"></div>
-        <div class="form-row"><div class="input-label">Full name</div><input class="input-field" id="nameInput" value="Sidharth Kumar" oninput="updateName(this.value)"></div>
-        <div class="form-row"><div class="input-label">Target post</div><input class="input-field" value="Assistant Section Officer (ASO)"></div>
-        <div class="form-row"><div class="input-label">Exam date</div><input type="date" class="input-field" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
-        <button class="btn btn-primary" onclick="this.textContent='Saved ✓';setTimeout(()=>this.innerHTML='<i class=ti ti-check></i>Save changes',1500)"><i class="ti ti-check"></i>Save changes</button>
-      </div>
-      <div class="card">
-        <div class="section-title">Progress timeline</div>
-        <div style="display:flex;flex-direction:column;gap:0">
-          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--green);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 1 — Started</div><div style="font-size:11px;color:var(--text3)">Accuracy: 55% · Mock: 98/200</div></div></div>
-          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--green);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 30 — First breakthrough</div><div style="font-size:11px;color:var(--text3)">Accuracy: 69% · Mock: 119/200</div></div></div>
-          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--accent);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 58 — Today 🔥</div><div style="font-size:11px;color:var(--text3)">Accuracy: 83% · Mock: 145/200</div></div></div>
-          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;border:2px solid var(--text3);margin-top:2px;flex-shrink:0"></div></div><div><div style="font-size:13px;font-weight:600;color:var(--text3)">Exam day — Target: 175+</div><div style="font-size:11px;color:var(--text3)" id="daysLeftProfile">187 days to go</div></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SETTINGS -->
+  <!-- ══ SETTINGS ══ -->
   <div class="page content" id="page-settings">
     <div class="section-title"><i class="ti ti-settings" style="color:var(--accent)"></i>Settings</div>
     <div class="grid-2">
       <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Exam configuration</div>
-        <div class="form-row"><div class="input-label">Your name</div><input class="input-field" id="settingsName" value="Sidharth" oninput="updateName(this.value)"></div>
-        <div class="form-row"><div class="input-label">SSC CGL exam date</div><input type="date" class="input-field" id="settingsExamDate" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
-        <div class="form-row"><div class="input-label">Daily study target (hours)</div><input type="number" class="input-field" min="1" max="16" value="6"></div>
-        <div class="form-row"><div class="input-label">Target typing speed (WPM)</div><input type="number" class="input-field" min="30" max="100" value="55"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="this.textContent='Saved ✓';setTimeout(()=>this.innerHTML='<i class=ti ti-check></i>Save settings',1500)"><i class="ti ti-check"></i>Save settings</button>
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Your profile</div>
+        <div class="form-row"><div class="input-label">Display name</div><input class="input-field" id="settingsName" placeholder="Your name"></div>
+        <div class="form-row"><div class="input-label">Target post</div><input class="input-field" id="settingsPost" placeholder="e.g. Assistant Section Officer"></div>
+        <div class="form-row"><div class="input-label">SSC CGL exam date</div><input type="date" class="input-field" id="settingsExamDate" onchange="updateExamDate(this.value)"></div>
+        <div class="form-row"><div class="input-label">Daily study target (hours)</div><input type="number" class="input-field" id="settingsHours" min="1" max="16" value="6"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveSettings()"><i class="ti ti-check"></i>Save settings</button>
+        <div class="divider"></div>
+        <button class="btn btn-red" style="width:100%" onclick="doLogout()"><i class="ti ti-logout"></i>Logout</button>
       </div>
       <div class="card">
-        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Study resources</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">English typing practice</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Notifications & syllabus</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook</div><div style="font-size:11px;color:var(--text3)">Free mock tests</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://www.youtube.com/@sscadda" target="_blank" class="link-card"><div class="link-icon" style="background:var(--red-bg);color:var(--red)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">SSC Adda</div><div style="font-size:11px;color:var(--text3)">Free video lectures</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
-          <a href="https://www.youtube.com/@studyiqeducation" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">StudyIQ</div><div style="font-size:11px;color:var(--text3)">Current affairs & GK</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">Default study resources</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-building-government"></i></div><div><div style="font-size:12px;font-weight:500">SSC Official</div><div style="font-size:10px;color:var(--text3)">Notifications & syllabus</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
+          <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:12px;font-weight:500">Testbook</div><div style="font-size:10px;color:var(--text3)">Free mock tests</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
+          <a href="https://www.oliveboard.in/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:12px;font-weight:500">Oliveboard</div><div style="font-size:10px;color:var(--text3)">Adaptive mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
+          <a href="https://www.youtube.com/@sscadda" target="_blank" class="link-card"><div class="link-icon" style="background:var(--red-bg);color:var(--red)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:12px;font-weight:500">SSC Adda</div><div style="font-size:10px;color:var(--text3)">Free video lectures</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3);font-size:12px"></i></a>
         </div>
       </div>
     </div>
@@ -646,238 +619,987 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 </div><!-- end main -->
 </div><!-- end app -->
 
-<!-- Emergency modal -->
-<div id="emergencyModal" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;max-width:480px;width:90%;position:relative">
-    <button onclick="closeEmergency()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px"><i class="ti ti-x"></i></button>
-    <div style="font-size:24px;margin-bottom:8px">💪 Remember why you started</div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:20px">Look at how far you've come:</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Day 1 mock score</span><span style="font-weight:700;color:var(--red)">98/200</span></div>
-      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Today's mock score</span><span style="font-weight:700;color:var(--green)">145/200 ↑47 marks</span></div>
-      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Current streak</span><span style="font-weight:700;color:var(--amber)">🔥 58 days</span></div>
-      <div style="background:var(--accent-bg);border-radius:var(--radius);padding:12px;border:1px solid var(--accent)"><span style="font-size:13px;color:var(--accent);font-weight:500">You are only <strong>15 marks away</strong> from the expected cutoff. This is not the time to quit.</span></div>
+<!-- ═══ MOCK ENTRY MODAL ═══ -->
+<div class="modal-bg" id="mockModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMockModal()"><i class="ti ti-x"></i></button>
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px">Log mock test score</div>
+    <div class="form-grid">
+      <div class="form-row"><div class="input-label">Total score (out of 200)</div><input class="input-field" id="mockScore" type="number" min="0" max="200" placeholder="e.g. 145"></div>
+      <div class="form-row"><div class="input-label">Date taken</div><input class="input-field" id="mockDate" type="date"></div>
     </div>
-    <div style="font-size:14px;color:var(--text2);line-height:1.8">🏛️ ASO in Ministry of Finance · ₹35,000–₹1,10,000 pay scale · Government security · Family pride</div>
-    <button class="btn btn-primary" style="width:100%;margin-top:20px;padding:14px;font-size:15px" onclick="closeEmergency()"><i class="ti ti-flame"></i>I'm not quitting. Let's go!</button>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;margin-top:4px">Subject-wise scores (out of 50 each)</div>
+    <div class="form-grid">
+      <div class="form-row"><div class="input-label">Reasoning</div><input class="input-field" id="mockReasoning" type="number" min="0" max="50" placeholder="e.g. 44"></div>
+      <div class="form-row"><div class="input-label">Quantitative</div><input class="input-field" id="mockQuant" type="number" min="0" max="50" placeholder="e.g. 40"></div>
+      <div class="form-row"><div class="input-label">English</div><input class="input-field" id="mockEnglish" type="number" min="0" max="50" placeholder="e.g. 30"></div>
+      <div class="form-row"><div class="input-label">General Awareness</div><input class="input-field" id="mockGK" type="number" min="0" max="50" placeholder="e.g. 31"></div>
+    </div>
+    <div class="form-row"><div class="input-label">Platform / website</div><input class="input-field" id="mockPlatform" placeholder="e.g. Testbook, Oliveboard"></div>
+    <div class="form-row"><div class="input-label">Notes</div><textarea class="input-field" id="mockNotes" rows="2" placeholder="What went well? What to improve?"></textarea></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveMock()"><i class="ti ti-device-floppy"></i>Save mock result</button>
   </div>
 </div>
 
+<!-- ═══ EMERGENCY MODAL ═══ -->
+<div class="modal-bg" id="emergencyModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEmergency()"><i class="ti ti-x"></i></button>
+    <div style="font-size:22px;margin-bottom:8px">💪 Remember why you started</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Look at how far you've come:</div>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px" id="emergencyStats"></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:18px">🏛️ Government job · Financial stability · Family pride · Your hard work WILL pay off.</div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="closeEmergency()"><i class="ti ti-flame"></i>I'm not quitting. Let's go!</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
 <script>
-const PAGES={
-  dashboard:'Good morning, Sidharth 👋|SSC CGL 2026 — Keep the streak alive!',
-  subjects:'Subject tracker|Track preparation across all 6 subjects',
-  planner:'AI study planner|Personalized daily & weekly schedule',
-  typing:'Typing practice|Build speed and accuracy for Tier 2',
-  mock:'Mock test analysis|Deep dive into your performance',
-  pyq:'PYQ tracker|Previous year questions by topic & difficulty',
-  heatmap:'Chapter heatmap|Your progress at a glance',
-  aimentor:'SSC Mentor|AI-powered personal coach',
-  motivation:'Motivation & mood|Check in daily, stay on track',
-  habits:'Habit tracker|Healthy habits = better scores',
-  rewards:'Rewards|Achievements and milestones',
-  profile:'Your profile|Journey from Day 1 to exam day',
-  settings:'Settings|Configure exam date and preferences'
+// ══════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════
+// IMPORTANT: Replace with your own Supabase project URL and anon key
+// Get these free at https://supabase.com → New project → Project Settings → API
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentUser = null;
+let userProfile = {};
+let mockHistory = [];
+let typingHistory = [];
+let scheduleSlots = [];
+let resources = [];
+let habitState = {};
+let subjectState = {};
+let pyqQuestions = [];
+let pyqAnswered = {};
+let pomodoroCount = 0;
+let bestWpm = 0;
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('loginTab').classList.toggle('active', tab==='login');
+  document.getElementById('signupTab').classList.toggle('active', tab==='signup');
+  document.getElementById('loginForm').style.display = tab==='login'?'':'none';
+  document.getElementById('signupForm').style.display = tab==='signup'?'':'none';
+  clearAuthMsg();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+function showAuthSuccess(msg) {
+  const el = document.getElementById('authSuccess');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+function clearAuthMsg() {
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if (!email || !pass) { showAuthError('Please fill in all fields'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.innerHTML = '<i class="ti ti-loader"></i>Logging in...'; btn.disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.innerHTML = '<i class="ti ti-login"></i>Login'; btn.disabled = false;
+  if (error) { showAuthError(error.message); return; }
+  await afterLogin(data.user);
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPassword').value;
+  const examDate = document.getElementById('signupExamDate').value;
+  if (!name || !email || !pass) { showAuthError('Please fill in all fields'); return; }
+  if (pass.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
+  const btn = document.getElementById('signupBtn');
+  btn.innerHTML = '<i class="ti ti-loader"></i>Creating account...'; btn.disabled = true;
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name, exam_date: examDate } } });
+  btn.innerHTML = '<i class="ti ti-user-plus"></i>Create account'; btn.disabled = false;
+  if (error) { showAuthError(error.message); return; }
+  if (data.user) {
+    // Save profile
+    await sb.from('profiles').upsert({ id: data.user.id, name, exam_date: examDate, target_post: '', study_hours: 6 });
+    showAuthSuccess('Account created! You are now logged in.');
+    await afterLogin(data.user);
+  }
+}
+
+async function afterLogin(user) {
+  currentUser = user;
+  await loadUserProfile();
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  await loadAllData();
+  initApp();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; userProfile = {}; mockHistory = []; typingHistory = []; scheduleSlots = []; resources = []; habitState = {}; subjectState = {}; pyqQuestions = [];
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+  clearAuthMsg();
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+// ══════════════════════════════════════════
+// DATA LOADING
+// ══════════════════════════════════════════
+async function loadUserProfile() {
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (data) {
+    userProfile = data;
+  } else {
+    // Create default profile from auth metadata
+    const meta = currentUser.user_metadata || {};
+    userProfile = { id: currentUser.id, name: meta.name || 'Aspirant', exam_date: meta.exam_date || '2027-01-03', target_post: '', study_hours: 6 };
+    await sb.from('profiles').upsert(userProfile);
+  }
+}
+
+async function loadAllData() {
+  const uid = currentUser.id;
+  const [mocks, typing, schedule, res, habits, subjects] = await Promise.all([
+    sb.from('mock_scores').select('*').eq('user_id', uid).order('date', { ascending: false }),
+    sb.from('typing_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(10),
+    sb.from('schedules').select('*').eq('user_id', uid).order('sort_order'),
+    sb.from('resources').select('*').eq('user_id', uid).order('created_at'),
+    sb.from('habits').select('*').eq('user_id', uid).eq('date', today()),
+    sb.from('subjects').select('*').eq('user_id', uid),
+  ]);
+  mockHistory = mocks.data || [];
+  typingHistory = typing.data || [];
+  scheduleSlots = schedule.data || [];
+  resources = res.data || [];
+  (habits.data || []).forEach(h => habitState[h.habit_key] = h.done);
+  (subjects.data || []).forEach(s => subjectState[s.subject] = s.status);
+  bestWpm = typingHistory.length ? Math.max(...typingHistory.map(t => t.wpm)) : 0;
+}
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+// ══════════════════════════════════════════
+// INIT APP
+// ══════════════════════════════════════════
+function initApp() {
+  const name = userProfile.name || 'Aspirant';
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
+  if (userProfile.exam_date) updateExamDate(userProfile.exam_date);
+  if (document.getElementById('settingsName')) document.getElementById('settingsName').value = name;
+  if (document.getElementById('settingsPost')) document.getElementById('settingsPost').value = userProfile.target_post || '';
+  if (document.getElementById('settingsExamDate')) document.getElementById('settingsExamDate').value = userProfile.exam_date || '';
+  if (document.getElementById('settingsHours')) document.getElementById('settingsHours').value = userProfile.study_hours || 6;
+  renderMockStats();
+  renderSchedule();
+  renderSubjects();
+  renderHabits();
+  renderResources();
+  renderTypingHistory();
+  renderRewards();
+  buildHeatmap();
+  initTyping();
+  updateDashboardCards();
+  generateAIDailyMessage();
+  loadDailyQuestions();
+  initMentorChat();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+const PAGE_INFO = {
+  dashboard: 'Dashboard|Good morning!',
+  subjects: 'Subject tracker|Click a subject to mark strong or weak',
+  planner: 'Study planner|Set your daily schedule',
+  typing: 'Typing practice|Build speed for Tier 2',
+  mock: 'Mock analysis|Log and track your mock scores',
+  pyq: 'Daily questions|AI-generated fresh questions every day',
+  heatmap: 'Chapter heatmap|Visual progress tracker',
+  aimentor: 'AI Mentor|Your personal SSC coach',
+  motivation: 'Motivation|Daily check-in and countdown',
+  habits: 'Habit tracker|Healthy habits = better scores',
+  resources: 'My resources|Save your mock test websites',
+  rewards: 'Rewards|Achievements and milestones',
+  settings: 'Settings|Profile and exam configuration',
 };
 
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const el=document.getElementById('page-'+id);
-  if(el)el.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'"))b.classList.add('active');
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('page-' + id);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + id + "'")) b.classList.add('active');
   });
-  const info=PAGES[id]||'Dashboard|';
-  const [title,sub]=info.split('|');
-  document.getElementById('pageTitle').textContent=title;
-  document.getElementById('pageSubtitle').textContent=sub;
+  const [title, sub] = (PAGE_INFO[id] || 'Dashboard|').split('|');
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSubtitle').textContent = sub;
   closeSidebar();
 }
 
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
 
-function toggleTask(el){
-  const icon=el.querySelector('i');
-  if(icon.className.includes('filled')){icon.className='ti ti-circle';el.style.color='var(--text3)';}
-  else{icon.className='ti ti-circle-check-filled';el.style.color='var(--green)';}
-}
-function toggleHabit(el){
-  const done=el.classList.contains('done');
-  el.classList.toggle('done',!done);
-  el.textContent=done?'':'✓';
+// ══════════════════════════════════════════
+// EXAM DATE
+// ══════════════════════════════════════════
+function updateExamDate(val) {
+  if (!val) return;
+  const exam = new Date(val), now = new Date();
+  const diff = Math.ceil((exam - now) / (1000 * 60 * 60 * 24));
+  document.getElementById('daysLeft').textContent = diff;
+  document.getElementById('examDateDisplay').textContent = exam.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+  if (document.getElementById('tier1Days')) document.getElementById('tier1Days').textContent = diff + ' days';
 }
 
-function selectMood(el,mood){
-  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
-  el.classList.add('selected');
-  const responses={
-    excellent:'Amazing! 🎉 Keep this energy — log an extra 30 min of Quant today!',
-    good:'Great work! Consistency beats intensity. Tomorrow focus on your weakest chapter.',
-    average:'That\'s okay. Most aspirants have average days. Try just 1 hour of Reasoning tonight — no pressure.',
-    bad:'Everyone has bad days. Missing one day won\'t fail you. Today\'s target: just 30 minutes. No pressure.',
-    terrible:'Take the evening off completely. Rest is recovery. Return tomorrow with a fresh 1-hour session. 💙'
+// ══════════════════════════════════════════
+// MOCK SCORES
+// ══════════════════════════════════════════
+function openMockModal() {
+  document.getElementById('mockDate').value = today();
+  document.getElementById('mockModal').classList.add('open');
+}
+function closeMockModal() { document.getElementById('mockModal').classList.remove('open'); }
+
+async function saveMock() {
+  const score = parseInt(document.getElementById('mockScore').value);
+  if (!score && score !== 0) { showToast('Enter a score', 'error'); return; }
+  const r = parseInt(document.getElementById('mockReasoning').value) || null;
+  const q = parseInt(document.getElementById('mockQuant').value) || null;
+  const e = parseInt(document.getElementById('mockEnglish').value) || null;
+  const g = parseInt(document.getElementById('mockGK').value) || null;
+  const row = {
+    user_id: currentUser.id,
+    score,
+    date: document.getElementById('mockDate').value || today(),
+    reasoning: r, quant: q, english: e, gk: g,
+    platform: document.getElementById('mockPlatform').value,
+    notes: document.getElementById('mockNotes').value,
   };
-  const colors={excellent:'var(--green)',good:'var(--accent)',average:'var(--amber)',bad:'var(--amber)',terrible:'var(--teal)'};
-  const resp=document.getElementById('moodResponse');
-  resp.style.display='block';
-  resp.innerHTML=`<div style="background:var(--bg3);border-left:3px solid ${colors[mood]};border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px;font-size:13px;line-height:1.7">${responses[mood]}</div>`;
+  const { data, error } = await sb.from('mock_scores').insert(row).select();
+  if (error) { showToast('Error saving mock: ' + error.message, 'error'); return; }
+  mockHistory.unshift(data[0]);
+  renderMockStats();
+  updateDashboardCards();
+  renderRewards();
+  closeMockModal();
+  // Clear form
+  ['mockScore','mockReasoning','mockQuant','mockEnglish','mockGK','mockPlatform','mockNotes'].forEach(id => document.getElementById(id).value = '');
+  showToast('Mock saved! 🎉', 'success');
 }
 
-function updateName(val){
-  document.getElementById('pageTitle').textContent='Good morning, '+val+' 👋';
-  if(document.getElementById('profileName'))document.getElementById('profileName').textContent=val+' Kumar';
-  document.getElementById('avatarBtn').textContent=val[0]||'S';
-  document.getElementById('bigAvatar').textContent=val[0]||'S';
+function renderMockStats() {
+  const scores = mockHistory.map(m => m.score);
+  const last = mockHistory[0];
+  const best = scores.length ? Math.max(...scores) : null;
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+
+  ['mockLastScore','mockLastScore'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = last ? last.score + '/200' : '--';
+  });
+  const ids = ['mockLastScore','lastMockDisplay'];
+  ids.forEach(id => { const el=document.getElementById(id); if(el) el.textContent = last ? last.score+'/200':'--/200'; });
+  const ids2 = ['mockLastDate','lastMockDate'];
+  ids2.forEach(id => { const el=document.getElementById(id); if(el) el.textContent = last ? 'on '+last.date : 'No mock logged yet'; });
+  ['mockBest','bestMockDisplay'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = best||'--'; });
+  const mc = document.getElementById('mockTotal'); if(mc) mc.textContent = mockHistory.length;
+  const mc2 = document.getElementById('mockCountDisplay'); if(mc2) mc2.textContent = mockHistory.length;
+  const ma = document.getElementById('mockAvg'); if(ma) ma.textContent = avg||'--';
+
+  // Table
+  const tbl = document.getElementById('mockHistoryTable');
+  if (!tbl) return;
+  if (!mockHistory.length) { tbl.innerHTML = '<div style="color:var(--text2);font-size:13px">No mocks logged yet. Click "Log new mock" to add your first score.</div>'; return; }
+  tbl.innerHTML = `<table class="mock-table"><thead><tr><th>Date</th><th>Score</th><th>Reasoning</th><th>Quant</th><th>English</th><th>GK</th><th>Platform</th></tr></thead><tbody>${
+    mockHistory.map(m => {
+      const weakSubject = findWeakSubject(m);
+      return `<tr><td>${m.date}</td><td><strong style="color:var(--accent)">${m.score}/200</strong></td>
+      <td>${m.reasoning!=null?`<span class="tag ${tagColor(m.reasoning,50)}">${m.reasoning}/50</span>`:'--'}</td>
+      <td>${m.quant!=null?`<span class="tag ${tagColor(m.quant,50)}">${m.quant}/50</span>`:'--'}</td>
+      <td>${m.english!=null?`<span class="tag ${tagColor(m.english,50)}">${m.english}/50</span>`:'--'}</td>
+      <td>${m.gk!=null?`<span class="tag ${tagColor(m.gk,50)}">${m.gk}/50</span>`:'--'}</td>
+      <td style="color:var(--text2)">${m.platform||'--'}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
 }
 
-function updateExamDate(val){
-  if(!val)return;
-  const exam=new Date(val);const now=new Date();
-  const diff=Math.ceil((exam-now)/(1000*60*60*24));
-  document.getElementById('daysLeft').textContent=diff;
-  document.getElementById('daysLeftProfile').textContent=diff+' days to go';
-  if(document.getElementById('t1Days'))document.getElementById('t1Days').textContent=diff+' days';
-  const opts={year:'numeric',month:'short',day:'numeric'};
-  document.getElementById('examDateDisplay').textContent=exam.toLocaleDateString('en-IN',opts);
-  if(document.getElementById('settingsExamDate'))document.getElementById('settingsExamDate').value=val;
-  if(document.getElementById('examDateInput'))document.getElementById('examDateInput').value=val;
+function tagColor(val, max) {
+  const pct = val/max;
+  if (pct >= 0.8) return 'tag-green';
+  if (pct >= 0.6) return 'tag-amber';
+  return 'tag-red';
 }
 
-// Typing practice
-const texts=[
-  'The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon in the month of June.',
-  'Government jobs provide stability and security to millions of families across India every single year of their lives.',
-  'Consistency is the most underrated quality in competitive exam preparation — just show up every single day without fail.',
-  'SSC CGL aspirants who practice typing daily gain a significant advantage in the Tier 2 descriptive paper examination.'
+function findWeakSubject(m) {
+  const subs = [{name:'Reasoning',val:m.reasoning},{name:'Quant',val:m.quant},{name:'English',val:m.english},{name:'GK',val:m.gk}].filter(s=>s.val!=null);
+  if (!subs.length) return null;
+  return subs.sort((a,b)=>a.val-b.val)[0].name;
+}
+
+// ══════════════════════════════════════════
+// SUBJECTS
+// ══════════════════════════════════════════
+const SUBJECTS = [
+  { key:'reasoning', name:'Reasoning', icon:'ti-brain', color:'accent' },
+  { key:'quant', name:'Quantitative', icon:'ti-calculator', color:'blue' },
+  { key:'english', name:'English', icon:'ti-vocabulary', color:'amber' },
+  { key:'gk', name:'General Awareness', icon:'ti-world', color:'pink' },
+  { key:'computer', name:'Computer', icon:'ti-device-laptop', color:'teal' },
+  { key:'typing', name:'Typing', icon:'ti-keyboard', color:'green' },
 ];
-let currentText='',typed='',startTime=null,timerInterval=null;
 
-function initTyping(){
-  currentText=texts[Math.floor(Math.random()*texts.length)];
-  typed='';startTime=null;
-  clearInterval(timerInterval);
-  ['wpmDisplay','errDisplay'].forEach(id=>document.getElementById(id).textContent='0');
-  document.getElementById('accDisplay').textContent='100%';
-  document.getElementById('timeDisplay').textContent='0s';
-  renderTyping();
+async function toggleSubject(key) {
+  const cur = subjectState[key] || 'neutral';
+  const next = cur === 'strong' ? 'weak' : cur === 'weak' ? 'neutral' : 'strong';
+  subjectState[key] = next;
+  await sb.from('subjects').upsert({ user_id: currentUser.id, subject: key, status: next });
+  renderSubjects();
+  renderWeakSubjectsDash();
 }
-function renderTyping(){
-  document.getElementById('typingText').innerHTML=currentText.split('').map((ch,i)=>{
-    let cls=i<typed.length?(typed[i]===ch?'correct':'wrong'):(i===typed.length?'current':'pending');
-    return`<span class="${cls}">${ch}</span>`;
+
+function renderSubjects() {
+  const grid = document.getElementById('subjectGrid');
+  if (!grid) return;
+  grid.innerHTML = SUBJECTS.map(s => {
+    const status = subjectState[s.key] || 'neutral';
+    const borderClass = status === 'strong' ? 'strong-border' : status === 'weak' ? 'weak-border' : '';
+    const tagHtml = status === 'strong' ? '<span class="tag tag-green">Strong</span>' : status === 'weak' ? '<span class="tag tag-red">Weak</span>' : '<span class="tag" style="background:var(--bg4);color:var(--text2)">Neutral</span>';
+    return `<div class="subject-card ${borderClass}" onclick="toggleSubject('${s.key}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--${s.color}-bg);color:var(--${s.color});display:flex;align-items:center;justify-content:center;font-size:18px"><i class="ti ${s.icon}"></i></div>
+          <div><div style="font-weight:600;font-size:13px">${s.name}</div>${tagHtml}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">Click to toggle: Strong → Weak → Neutral</div>
+    </div>`;
+  }).join('');
+  renderWeakSubjectsDash();
+}
+
+function renderWeakSubjectsDash() {
+  const el = document.getElementById('weakSubjectsList');
+  if (!el) return;
+  const weak = SUBJECTS.filter(s => subjectState[s.key] === 'weak');
+  const strong = SUBJECTS.filter(s => subjectState[s.key] === 'strong');
+  if (!weak.length && !strong.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text2)">Mark subjects as weak or strong in the <a href="#" onclick="showPage(\'subjects\');return false" style="color:var(--accent)">Subjects tab</a></div>'; return; }
+  el.innerHTML = [
+    ...weak.map(s => `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${s.name}</span><span class="tag tag-red">Weak — focus today</span></div>`),
+    ...strong.map(s => `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${s.name}</span><span class="tag tag-green">Strong ✓</span></div>`),
+  ].join('');
+}
+
+// ══════════════════════════════════════════
+// SCHEDULE
+// ══════════════════════════════════════════
+const SUBJECT_OPTS = ['Reasoning','Quantitative','English','General Awareness','Computer','Typing','Break','Revision','Mock Test','Other'];
+const SLOT_COLORS = { Reasoning:'accent', Quantitative:'blue', English:'amber', 'General Awareness':'pink', Computer:'teal', Typing:'teal', Break:'', Revision:'green', 'Mock Test':'red', Other:'' };
+
+function addScheduleSlot() {
+  scheduleSlots.push({ time: '06:00', subject: 'Reasoning', duration: 60, id: Date.now() });
+  renderSchedule();
+}
+
+function removeSlot(idx) { scheduleSlots.splice(idx, 1); renderSchedule(); }
+
+function renderSchedule() {
+  const el = document.getElementById('scheduleSlots');
+  if (!el) return;
+  if (!scheduleSlots.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text2);margin-bottom:12px">No slots yet. Click "Add time slot" to start building your schedule.</div>';
+  } else {
+    el.innerHTML = scheduleSlots.map((slot, i) => `
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+        <input type="time" class="input-field" style="width:100px;flex-shrink:0" value="${slot.time}" onchange="scheduleSlots[${i}].time=this.value">
+        <select class="input-field" style="flex:1;min-width:100px" onchange="scheduleSlots[${i}].subject=this.value">
+          ${SUBJECT_OPTS.map(o => `<option ${o===slot.subject?'selected':''}>${o}</option>`).join('')}
+        </select>
+        <input type="number" class="input-field" style="width:70px;flex-shrink:0" value="${slot.duration}" min="5" max="240" placeholder="min" onchange="scheduleSlots[${i}].duration=parseInt(this.value)||60">
+        <button class="btn btn-ghost btn-sm" onclick="removeSlot(${i})" style="padding:7px;flex-shrink:0"><i class="ti ti-trash" style="color:var(--red)"></i></button>
+      </div>`).join('');
+  }
+  renderSchedulePreview();
+  renderDashSchedule();
+}
+
+function renderSchedulePreview() {
+  const el = document.getElementById('schedulePreview');
+  if (!el || !scheduleSlots.length) { if(el) el.innerHTML='<div style="font-size:13px;color:var(--text2)">Add slots and save to see your schedule here.</div>'; return; }
+  el.innerHTML = scheduleSlots.map(slot => {
+    const c = SLOT_COLORS[slot.subject] || '';
+    const style = c ? `background:var(--${c}-bg);border-left:3px solid var(--${c})` : `background:var(--bg3);border-left:3px solid var(--border2)`;
+    return `<div class="schedule-row"><div class="schedule-time">${slot.time}</div><div class="schedule-block" style="${style}"><div style="font-size:13px;font-weight:500">${slot.subject}</div><div style="font-size:11px;color:var(--text3)">${slot.duration} min</div></div></div>`;
   }).join('');
 }
-function handleTyping(e){
-  typed=e.target.value;
-  if(!startTime&&typed.length>0){
-    startTime=Date.now();
-    timerInterval=setInterval(()=>{
-      const secs=Math.round((Date.now()-startTime)/1000);
-      document.getElementById('timeDisplay').textContent=secs+'s';
-      const wpm=Math.round((typed.trim().split(' ').length)/Math.max(secs/60,0.01));
-      document.getElementById('wpmDisplay').textContent=wpm;
-    },500);
+
+function renderDashSchedule() {
+  const el = document.getElementById('dashSchedule');
+  if (!el) return;
+  if (!scheduleSlots.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text2)">Set your schedule in the <a href="#" onclick="showPage(\'planner\');return false" style="color:var(--accent)">Study Planner</a> →</div>'; return; }
+  el.innerHTML = scheduleSlots.slice(0,5).map(slot => {
+    const c = SLOT_COLORS[slot.subject] || '';
+    const style = c ? `background:var(--${c}-bg);border-left:3px solid var(--${c})` : `background:var(--bg3);border-left:3px solid var(--border2)`;
+    return `<div class="schedule-row" style="margin-bottom:6px"><div class="schedule-time">${slot.time}</div><div class="schedule-block" style="${style};border-radius:0 6px 6px 0;padding:5px 10px"><div style="font-size:12px;font-weight:500">${slot.subject} · ${slot.duration}min</div></div></div>`;
+  }).join('') + (scheduleSlots.length > 5 ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">+${scheduleSlots.length-5} more slots →</div>` : '');
+}
+
+async function saveSchedule() {
+  const uid = currentUser.id;
+  await sb.from('schedules').delete().eq('user_id', uid);
+  if (scheduleSlots.length) {
+    const rows = scheduleSlots.map((s, i) => ({ user_id: uid, time: s.time, subject: s.subject, duration: s.duration, sort_order: i }));
+    await sb.from('schedules').insert(rows);
   }
-  let w=0;for(let i=0;i<typed.length;i++)if(typed[i]!==currentText[i])w++;
-  const acc=typed.length>0?Math.round(((typed.length-w)/typed.length)*100):100;
-  document.getElementById('errDisplay').textContent=w;
-  document.getElementById('accDisplay').textContent=acc+'%';
+  showToast('Schedule saved! ✓', 'success');
+  renderSchedulePreview();
+  renderDashSchedule();
+}
+
+// ══════════════════════════════════════════
+// TYPING PRACTICE
+// ══════════════════════════════════════════
+const TYPING_TEXTS = [
+  'The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon in June.',
+  'Government jobs provide stability and security to millions of families across India every year.',
+  'Consistency is the most underrated quality in competitive exam preparation — show up every day.',
+  'SSC CGL aspirants who practice typing daily gain a significant advantage in the Tier 2 examination.',
+  'The Staff Selection Commission conducts the Combined Graduate Level examination every year for Group B and C posts.',
+  'Dedicated students who revise regularly using spaced repetition tend to retain information much longer than others.',
+];
+let currentText = '', typed = '', typingStart = null, typingTimer = null, typingDone = false;
+
+function initTyping() {
+  currentText = TYPING_TEXTS[Math.floor(Math.random() * TYPING_TEXTS.length)];
+  typed = ''; typingStart = null; typingDone = false;
+  clearInterval(typingTimer);
+  ['wpmDisplay','errDisplay'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='0'; });
+  const acc = document.getElementById('accDisplay'); if(acc) acc.textContent='100%';
+  const td = document.getElementById('timeDisplay'); if(td) td.textContent='0s';
+  const stb = document.getElementById('saveTypingBtn'); if(stb) stb.style.display='none';
   renderTyping();
-  if(typed.length>=currentText.length)clearInterval(timerInterval);
-}
-function resetTyping(){initTyping();document.getElementById('typingInput').value='';}
-
-// Pomodoro
-let timerRunning=false,timerSecs=25*60,timerInt=null;
-function toggleTimer(){
-  if(timerRunning){
-    clearInterval(timerInt);timerRunning=false;
-    document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Resume';
-    document.getElementById('timerCircle').style.borderColor='var(--border2)';
-  }else{
-    timerRunning=true;
-    document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-pause"></i>Pause';
-    document.getElementById('timerCircle').style.borderColor='var(--accent)';
-    timerInt=setInterval(()=>{
-      timerSecs--;
-      if(timerSecs<=0){
-        clearInterval(timerInt);timerRunning=false;timerSecs=5*60;
-        document.getElementById('timerLabel').textContent='Break time!';
-        document.getElementById('timerCircle').style.borderColor='var(--green)';
-        document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Start focus';
-        return;
-      }
-      const m=Math.floor(timerSecs/60),s=timerSecs%60;
-      document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-    },1000);
-  }
-}
-function resetTimer(){
-  clearInterval(timerInt);timerRunning=false;timerSecs=25*60;
-  document.getElementById('timerDisplay').textContent='25:00';
-  document.getElementById('timerLabel').textContent='Focus session';
-  document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Start';
-  document.getElementById('timerCircle').style.borderColor='var(--accent)';
 }
 
-// Emergency modal
-function showEmergency(){document.getElementById('emergencyModal').style.display='flex';}
-function closeEmergency(){document.getElementById('emergencyModal').style.display='none';}
-
-// Heatmap
-function buildHeatmap(){
-  const el=document.getElementById('heatmap');
-  const colors=['var(--green)','var(--amber)','var(--red)','var(--bg4)'];
-  const weights=[0.45,0.25,0.1,0.2];
-  el.innerHTML=Array.from({length:90},()=>{
-    const r=Math.random();let sum=0,c=3;
-    for(let i=0;i<weights.length;i++){sum+=weights[i];if(r<sum){c=i;break;}}
-    return`<div class="heat-cell" style="background:${colors[c]};opacity:${0.6+Math.random()*.4}"></div>`;
+function renderTyping() {
+  const el = document.getElementById('typingText');
+  if (!el) return;
+  el.innerHTML = currentText.split('').map((ch, i) => {
+    let cls = i < typed.length ? (typed[i] === ch ? 'correct' : 'wrong') : (i === typed.length ? 'current' : 'pending');
+    return `<span class="${cls}">${ch}</span>`;
   }).join('');
 }
 
-// AI Mentor
-async function sendMentorMsg(){
-  const input=document.getElementById('mentorInput');
-  const msg=input.value.trim();
-  if(!msg)return;
-  const chat=document.getElementById('chatWindow');
-  chat.innerHTML+=`<div class="ai-msg-row" style="flex-direction:row-reverse"><div class="avatar" style="width:32px;height:32px;font-size:13px;flex-shrink:0">${document.getElementById('avatarBtn').textContent}</div><div class="ai-bubble user" style="flex:1"><div style="font-size:13px">${msg}</div></div></div>`;
-  input.value='';chat.scrollTop=chat.scrollHeight;
-  const thinkingId='t'+Date.now();
-  chat.innerHTML+=`<div class="ai-msg-row" id="${thinkingId}"><div class="ai-avatar"><i class="ti ti-robot" style="font-size:16px"></i></div><div class="ai-bubble" style="flex:1"><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div><div style="font-size:13px;color:var(--text3)">Thinking...</div></div></div>`;
-  chat.scrollTop=chat.scrollHeight;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',max_tokens:1000,
-        system:'You are SSC Mentor, a warm personal AI coach for SSC CGL aspirants in India. Student stats: 58-day streak, mock score 145/200, typing 42 WPM, weak in English synonyms (54% accuracy). Respond in 3-5 sentences. Be specific, warm, and actionable. Reference their stats when relevant.',
-        messages:[{role:'user',content:msg}]
+function handleTyping(e) {
+  typed = e.target.value;
+  if (!typingStart && typed.length > 0) {
+    typingStart = Date.now();
+    typingTimer = setInterval(() => {
+      const secs = Math.round((Date.now() - typingStart) / 1000);
+      const el = document.getElementById('timeDisplay'); if(el) el.textContent = secs + 's';
+      const words = typed.trim().split(' ').filter(Boolean).length;
+      const wpm = Math.round(words / Math.max(secs / 60, 0.01));
+      const we = document.getElementById('wpmDisplay'); if(we) we.textContent = wpm;
+    }, 500);
+  }
+  let w = 0;
+  for (let i = 0; i < typed.length; i++) if (typed[i] !== currentText[i]) w++;
+  const acc = typed.length > 0 ? Math.round(((typed.length - w) / typed.length) * 100) : 100;
+  const ae = document.getElementById('errDisplay'); if(ae) ae.textContent = w;
+  const acce = document.getElementById('accDisplay'); if(acce) acce.textContent = acc + '%';
+  renderTyping();
+  if (typed.length >= currentText.length) {
+    clearInterval(typingTimer);
+    typingDone = true;
+    const stb = document.getElementById('saveTypingBtn'); if(stb) stb.style.display='inline-flex';
+    const secs = Math.round((Date.now() - typingStart) / 1000);
+    const words = typed.trim().split(' ').filter(Boolean).length;
+    const wpm = Math.round(words / Math.max(secs / 60, 0.01));
+    updateTypingDashDisplay(wpm, acc);
+  }
+}
+
+function updateTypingDashDisplay(wpm, acc) {
+  if (wpm > bestWpm) bestWpm = wpm;
+  const tw = document.getElementById('typingWpmDisplay'); if(tw) tw.textContent = bestWpm + ' WPM';
+  const mw = document.getElementById('mentorTyping'); if(mw) mw.textContent = bestWpm + ' WPM';
+  const rw = document.getElementById('rewardWpm'); if(rw) rw.textContent = bestWpm;
+}
+
+async function saveTypingResult() {
+  if (!typingDone) return;
+  const secs = Math.round((Date.now() - typingStart) / 1000);
+  const words = typed.trim().split(' ').filter(Boolean).length;
+  const wpm = parseInt(document.getElementById('wpmDisplay').textContent) || 0;
+  const acc = parseInt(document.getElementById('accDisplay').textContent) || 0;
+  const errors = parseInt(document.getElementById('errDisplay').textContent) || 0;
+  const { data } = await sb.from('typing_sessions').insert({ user_id: currentUser.id, wpm, accuracy: acc, errors, duration_secs: secs }).select();
+  if (data) { typingHistory.unshift(data[0]); renderTypingHistory(); }
+  if (wpm > bestWpm) { bestWpm = wpm; updateTypingDashDisplay(wpm, acc); }
+  const stb = document.getElementById('saveTypingBtn'); if(stb) stb.style.display='none';
+  showToast('Typing result saved!', 'success');
+  setTimeout(resetTyping, 800);
+}
+
+function resetTyping() { initTyping(); const el = document.getElementById('typingInput'); if(el) el.value = ''; }
+
+function renderTypingHistory() {
+  const el = document.getElementById('typingHistory');
+  if (!el) return;
+  if (!typingHistory.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text2)">No sessions saved yet.</div>'; return; }
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px">${typingHistory.slice(0,8).map(t =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:500;color:var(--teal)">${t.wpm} WPM</span>
+      <span class="tag ${tagColor(t.accuracy, 100)}">${t.accuracy}% acc</span>
+      <span style="font-size:11px;color:var(--text3)">${(t.created_at||'').slice(0,10)}</span>
+    </div>`).join('')}</div>`;
+}
+
+// ══════════════════════════════════════════
+// DAILY QUESTIONS (AI GENERATED)
+// ══════════════════════════════════════════
+let pyqAnsweredToday = 0, pyqCorrectToday = 0;
+
+async function loadDailyQuestions() {
+  const container = document.getElementById('pyqContainer');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="ti ti-loader" style="font-size:32px;color:var(--accent)"></i><div style="margin-top:12px">Generating today\'s questions using AI...</div></div>';
+  pyqAnsweredToday = 0; pyqCorrectToday = 0; pyqAnswered = {};
+  updatePyqScore();
+
+  const dateStr = today();
+  const topics = ['Reasoning — Syllogism','Reasoning — Blood Relations','Reasoning — Seating Arrangement','Reasoning — Coding-Decoding','Quantitative — Percentage','Quantitative — Profit and Loss','Quantitative — Speed, Time and Distance','Quantitative — Geometry','English — Synonyms','English — Antonyms','English — Fill in the blanks','English — Error Spotting','General Awareness — History','General Awareness — Geography','General Awareness — Science','General Awareness — Current Affairs','Computer — MS Office','Computer — Internet and Networks','Computer — Operating Systems'];
+  const selected = shuffleArr([...topics]).slice(0,10);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 3000,
+        system: 'You are an SSC CGL exam question generator. Generate exactly 10 multiple choice questions for the topics provided. Return ONLY valid JSON, no other text, in this exact format: [{"topic":"topic name","question":"question text","options":["A) option","B) option","C) option","D) option"],"answer":"A","explanation":"brief explanation"}]',
+        messages: [{ role: 'user', content: `Generate 1 SSC CGL level MCQ for each of these topics (10 total). Make them realistic exam-level questions. Topics: ${selected.join(', ')}. Date seed: ${dateStr}. Return only JSON array.` }]
       })
     });
-    const data=await res.json();
-    const reply=data.content?.map(c=>c.text||'').join('')||'Keep going! Your 58-day streak shows incredible dedication. Focus on English synonyms today — that\'s your fastest path to a higher score.';
-    document.getElementById(thinkingId).querySelector('.ai-bubble div:last-child').innerHTML=reply.replace(/\n/g,'<br>');
-  }catch(e){
-    document.getElementById(thinkingId).querySelector('.ai-bubble div:last-child').textContent='Stay focused! Your 58-day streak proves you have what it takes. Tackle English synonyms today.';
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+    pyqQuestions = JSON.parse(text);
+    renderPyqQuestions();
+  } catch (e) {
+    container.innerHTML = '<div style="color:var(--text2);padding:20px">Failed to generate questions. Check internet connection and try again.<br><button class="btn btn-ghost" style="margin-top:12px" onclick="loadDailyQuestions()"><i class="ti ti-refresh"></i>Retry</button></div>';
   }
-  chat.scrollTop=chat.scrollHeight;
 }
 
-function generatePlan(btn){
-  btn.innerHTML='<i class="ti ti-check"></i>Plan updated!';
-  btn.style.background='var(--green)';
-  setTimeout(()=>{btn.innerHTML='<i class="ti ti-robot"></i>Generate AI plan';btn.style.background='';},2000);
+function shuffleArr(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+function renderPyqQuestions() {
+  const container = document.getElementById('pyqContainer');
+  if (!container) return;
+  container.innerHTML = pyqQuestions.map((q, qi) => `
+    <div class="pyq-question" id="pyq-${qi}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span class="tag tag-accent" style="font-size:10px">${q.topic}</span>
+        <span style="font-size:11px;color:var(--text3)">Q${qi+1}/10</span>
+      </div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.6">${q.question}</div>
+      <div class="pyq-options">
+        ${q.options.map((opt, oi) => `<button class="pyq-option" onclick="answerPyq(${qi},${oi},'${opt[0]}','${q.answer}','${encodeURIComponent(q.explanation)}')">${opt}</button>`).join('')}
+      </div>
+      <div id="pyq-exp-${qi}" style="display:none;margin-top:10px;padding:10px;background:var(--bg3);border-radius:var(--radius);font-size:12px;color:var(--text2);line-height:1.6"></div>
+    </div>`).join('');
+  updatePyqScore();
 }
 
-// Init
-buildHeatmap();
-initTyping();
-updateExamDate('2027-01-03');
+function answerPyq(qi, oi, selected, correct, expEncoded) {
+  if (pyqAnswered[qi] !== undefined) return;
+  pyqAnswered[qi] = selected;
+  const isCorrect = selected === correct;
+  if (isCorrect) pyqCorrectToday++;
+  pyqAnsweredToday++;
+  updatePyqScore();
+
+  const card = document.getElementById('pyq-' + qi);
+  const btns = card.querySelectorAll('.pyq-option');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    const btnLetter = pyqQuestions[qi].options[i][0];
+    if (btnLetter === correct) btn.classList.add('reveal-correct');
+    else if (i === oi && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const exp = document.getElementById('pyq-exp-' + qi);
+  exp.style.display = 'block';
+  exp.innerHTML = `<strong style="color:${isCorrect?'var(--green)':'var(--red)'}">${isCorrect?'✓ Correct!':'✗ Wrong'}</strong> — ${decodeURIComponent(expEncoded)}`;
+
+  // Save to DB
+  sb.from('daily_question_answers').insert({ user_id: currentUser.id, date: today(), topic: pyqQuestions[qi].topic, is_correct: isCorrect });
+
+  // Update dashboard
+  const dq = document.getElementById('dailyQsDone'); if(dq) dq.textContent = pyqAnsweredToday+'/10';
+  const da = document.getElementById('dailyQsAcc'); if(da) da.textContent = pyqAnsweredToday>0?Math.round((pyqCorrectToday/pyqAnsweredToday)*100)+'% accuracy':'--% accuracy';
+}
+
+function updatePyqScore() {
+  const el = document.getElementById('pyqScore');
+  if (el) el.textContent = pyqCorrectToday + '/' + pyqAnsweredToday + ' correct today';
+}
+
+// ══════════════════════════════════════════
+// HABITS
+// ══════════════════════════════════════════
+const HABIT_DEFS = [
+  { key:'water', label:'8 glasses of water', desc:'Hydration improves focus', icon:'ti-droplet', color:'blue' },
+  { key:'exercise', label:'30 min exercise', desc:'Boosts memory retention', icon:'ti-run', color:'green' },
+  { key:'sleep', label:'7–8 hours sleep', desc:'Memory consolidation', icon:'ti-moon', color:'amber' },
+  { key:'meditation', label:'10 min meditation', desc:'Reduces exam anxiety', icon:'ti-leaf', color:'teal' },
+  { key:'newspaper', label:'Newspaper 20 min', desc:'Current affairs for GK', icon:'ti-news', color:'pink' },
+  { key:'typing', label:'Daily typing practice', desc:'Min 20 min · MonkeyType', icon:'ti-keyboard', color:'accent' },
+  { key:'revision', label:'Chapter revision', desc:'Spaced repetition session', icon:'ti-book', color:'blue' },
+];
+
+function renderHabits() {
+  const el = document.getElementById('habitList');
+  if (!el) return;
+  el.innerHTML = HABIT_DEFS.map((h, i) => {
+    const done = habitState[h.key];
+    return `<div style="display:flex;align-items:center;justify-content:space-between;${i<HABIT_DEFS.length-1?'padding-bottom:12px;border-bottom:1px solid var(--border)':''}">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:34px;height:34px;border-radius:9px;background:var(--${h.color}-bg);color:var(--${h.color});display:flex;align-items:center;justify-content:center;font-size:16px"><i class="ti ${h.icon}"></i></div>
+        <div><div style="font-size:13px;font-weight:500">${h.label}</div><div style="font-size:11px;color:var(--text3)">${h.desc}</div></div>
+      </div>
+      <div class="habit-check ${done?'done':''}" onclick="toggleHabit('${h.key}',this)">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleHabit(key, el) {
+  const done = !habitState[key];
+  habitState[key] = done;
+  el.classList.toggle('done', done);
+  el.textContent = done ? '✓' : '';
+  await sb.from('habits').upsert({ user_id: currentUser.id, date: today(), habit_key: key, done }, { onConflict: 'user_id,date,habit_key' });
+}
+
+// ══════════════════════════════════════════
+// RESOURCES
+// ══════════════════════════════════════════
+async function addResource() {
+  const name = document.getElementById('resName').value.trim();
+  const url = document.getElementById('resUrl').value.trim();
+  const note = document.getElementById('resNote').value.trim();
+  if (!name || !url) { showToast('Enter name and URL', 'error'); return; }
+  const { data } = await sb.from('resources').insert({ user_id: currentUser.id, name, url, note }).select();
+  if (data) { resources.push(data[0]); renderResources(); document.getElementById('resName').value=''; document.getElementById('resUrl').value=''; document.getElementById('resNote').value=''; showToast('Resource saved!','success'); }
+}
+
+async function deleteResource(id) {
+  await sb.from('resources').delete().eq('id', id);
+  resources = resources.filter(r => r.id !== id);
+  renderResources();
+}
+
+function renderResources() {
+  const el = document.getElementById('resourcesList');
+  if (!el) return;
+  if (!resources.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text2)">No resources saved yet. Add your mock test websites above.</div>'; return; }
+  el.innerHTML = resources.map(r => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius)">
+      <div style="width:34px;height:34px;border-radius:8px;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"><i class="ti ti-link"></i></div>
+      <div style="flex:1;min-width:0">
+        <a href="${r.url}" target="_blank" style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none">${r.name} <i class="ti ti-external-link" style="font-size:11px;color:var(--text3)"></i></a>
+        ${r.note ? `<div style="font-size:11px;color:var(--text3)">${r.note}</div>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="deleteResource(${r.id})" style="padding:5px"><i class="ti ti-trash" style="color:var(--red)"></i></button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// AI MENTOR CHAT
+// ══════════════════════════════════════════
+function initMentorChat() {
+  const chat = document.getElementById('chatWindow');
+  if (!chat) return;
+  const name = userProfile.name || 'Aspirant';
+  const lastMock = mockHistory[0] ? mockHistory[0].score + '/200' : 'not logged yet';
+  chat.innerHTML = `<div style="display:flex;gap:10px;align-items:flex-start">
+    <div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0"><i class="ti ti-robot"></i></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;flex:1;font-size:13px;line-height:1.7">
+      <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div>
+      Hello ${name}! I'm your personal SSC CGL mentor.<br><br>
+      📊 Last mock: <strong>${lastMock}</strong><br>
+      🔥 Days to exam: <strong>${document.getElementById('daysLeft').textContent}</strong><br><br>
+      Ask me anything — strategy, motivation, subject doubts, or how to improve.
+    </div></div>`;
+  const ms = document.getElementById('mentorMock'); if(ms) ms.textContent = mockHistory[0] ? mockHistory[0].score+'/200' : '--';
+  const mst = document.getElementById('mentorStreak'); if(mst) mst.textContent = (userProfile.streak||0)+' days';
+  const mty = document.getElementById('mentorTyping'); if(mty) mty.textContent = bestWpm ? bestWpm+' WPM' : '-- WPM';
+}
+
+function quickAsk(msg) { document.getElementById('mentorInput').value = msg; sendMentorMsg(); }
+
+async function sendMentorMsg() {
+  const input = document.getElementById('mentorInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const chat = document.getElementById('chatWindow');
+  const name = userProfile.name || 'Aspirant';
+  const av = name[0].toUpperCase();
+  chat.innerHTML += `<div style="display:flex;gap:10px;align-items:flex-start;flex-direction:row-reverse">
+    <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:white;flex-shrink:0">${av}</div>
+    <div style="background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-lg);padding:14px;flex:1;font-size:13px">${msg}</div></div>`;
+  input.value = '';
+  chat.scrollTop = chat.scrollHeight;
+  const tid = 'thinking-' + Date.now();
+  chat.innerHTML += `<div id="${tid}" style="display:flex;gap:10px;align-items:flex-start">
+    <div style="width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0"><i class="ti ti-robot"></i></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;flex:1"><div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div><div style="font-size:13px;color:var(--text3)">Thinking...</div></div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+  const weakSubs = SUBJECTS.filter(s => subjectState[s.key] === 'weak').map(s => s.name).join(', ') || 'none marked';
+  const lastMock = mockHistory[0] ? mockHistory[0].score + '/200' : 'no mock logged';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 400,
+        system: `You are SSC Mentor, a warm personal coach for SSC CGL aspirants. Student: ${name}. Last mock: ${lastMock}. Weak subjects: ${weakSubs}. Days to exam: ${document.getElementById('daysLeft').textContent}. Best typing: ${bestWpm} WPM. Respond in 3-5 sentences. Be specific, warm, and actionable.`,
+        messages: [{ role: 'user', content: msg }]
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.map(c => c.text || '').join('') || 'Keep going! Consistency is everything in CGL prep.';
+    const thEl = document.getElementById(tid);
+    if (thEl) thEl.querySelector('div:last-child div:last-child').innerHTML = reply.replace(/\n/g, '<br>');
+  } catch (e) {
+    const thEl = document.getElementById(tid);
+    if (thEl) thEl.querySelector('div:last-child div:last-child').textContent = 'Stay consistent! Every day counts. Focus on your weak subjects today.';
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ══════════════════════════════════════════
+// AI DAILY DASHBOARD MESSAGE
+// ══════════════════════════════════════════
+async function generateAIDailyMessage() {
+  const el = document.getElementById('aiDailyMsg');
+  if (!el) return;
+  const weakSubs = SUBJECTS.filter(s => subjectState[s.key] === 'weak').map(s => s.name).join(', ') || 'none marked yet';
+  const lastMock = mockHistory[0] ? mockHistory[0].score + '/200 on ' + mockHistory[0].date : 'no mock logged yet';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 150,
+        system: 'You are SSC Mentor. Generate a personalized 2-sentence motivational message for today based on the student\'s data. Be specific to their weak areas and mock score. Do not use generic quotes.',
+        messages: [{ role: 'user', content: `Student data: Weak subjects: ${weakSubs}. Last mock: ${lastMock}. Days to exam: ${document.getElementById('daysLeft').textContent}. Generate today's message.` }]
+      })
+    });
+    const data = await res.json();
+    const msg = data.content?.map(c => c.text || '').join('');
+    if (msg) el.textContent = msg;
+  } catch (e) {
+    el.textContent = 'Stay consistent today — every question you solve now is one fewer surprise on exam day.';
+  }
+}
+
+// ══════════════════════════════════════════
+// MOOD
+// ══════════════════════════════════════════
+const MOOD_RESPONSES = {
+  excellent: 'Amazing! 🎉 Keep this energy — log an extra 30 min on your weak subjects today!',
+  good: 'Great work! Consistency beats intensity. Tomorrow focus on your weakest chapter.',
+  average: 'Average days are normal. Try just 1 focused hour tonight — no pressure.',
+  bad: 'Missing one day won\'t fail you. Missing 20 will. Today\'s target: just 30 minutes. Rest and restart.',
+  terrible: 'Take the evening off completely. Rest is recovery, not laziness. Return tomorrow with 1 hour. 💙'
+};
+const MOOD_COLORS = { excellent:'var(--green)',good:'var(--accent)',average:'var(--amber)',bad:'var(--amber)',terrible:'var(--teal)' };
+
+function selectMood(el, mood) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const resp = document.getElementById('moodResponse');
+  resp.style.display = 'block';
+  resp.innerHTML = `<div style="background:var(--bg3);border-left:3px solid ${MOOD_COLORS[mood]};border-radius:0 var(--radius) var(--radius) 0;padding:12px 14px;font-size:13px;line-height:1.7">${MOOD_RESPONSES[mood]}</div>`;
+  sb.from('moods').insert({ user_id: currentUser.id, date: today(), mood });
+}
+
+// ══════════════════════════════════════════
+// REWARDS & BADGES
+// ══════════════════════════════════════════
+const BADGE_DEFS = [
+  { icon:'🔥', name:'Consistent', desc:'Logged in 7+ days', check: () => true },
+  { icon:'📝', name:'First mock', desc:'Logged first mock test', check: () => mockHistory.length >= 1 },
+  { icon:'📝', name:'Mock veteran', desc:'Logged 10+ mock tests', check: () => mockHistory.length >= 10 },
+  { icon:'⌨️', name:'Typing starter', desc:'Saved first typing result', check: () => typingHistory.length >= 1 },
+  { icon:'⌨️', name:'Typing adept', desc:'Reached 40+ WPM', check: () => bestWpm >= 40 },
+  { icon:'⌨️', name:'Speed demon', desc:'Reached 55+ WPM', check: () => bestWpm >= 55 },
+  { icon:'🎯', name:'High scorer', desc:'Mock score 150+ once', check: () => mockHistory.some(m => m.score >= 150) },
+  { icon:'🏆', name:'Top performer', desc:'Mock score 170+ once', check: () => mockHistory.some(m => m.score >= 170) },
+];
+
+function renderRewards() {
+  const earnedBadges = BADGE_DEFS.filter(b => b.check());
+  const rs = document.getElementById('rewardStreak'); if(rs) rs.textContent = userProfile.streak || 0;
+  const rm = document.getElementById('rewardMocks'); if(rm) rm.textContent = mockHistory.length;
+  const rw = document.getElementById('rewardWpm'); if(rw) rw.textContent = bestWpm || 0;
+  const rb = document.getElementById('rewardBadges'); if(rb) rb.textContent = earnedBadges.length;
+  const grid = document.getElementById('badgeGrid');
+  if (!grid) return;
+  grid.innerHTML = BADGE_DEFS.map(b => {
+    const earned = b.check();
+    return `<div class="reward-badge" style="${earned?'':'opacity:.35'}"><div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-desc">${b.desc}</div>${earned?'<div style="margin-top:6px" class="tag tag-green" style="font-size:9px">Earned ✓</div>':''}</div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// HEATMAP
+// ══════════════════════════════════════════
+function buildHeatmap() {
+  const el = document.getElementById('heatmap');
+  if (!el) return;
+  const colors = ['var(--green)', 'var(--amber)', 'var(--red)', 'var(--bg4)'];
+  const weights = [0.45, 0.25, 0.1, 0.2];
+  el.innerHTML = Array.from({ length: 90 }, () => {
+    const r = Math.random(); let sum = 0, c = 3;
+    for (let i = 0; i < weights.length; i++) { sum += weights[i]; if (r < sum) { c = i; break; } }
+    return `<div class="heat-cell" style="background:${colors[c]};opacity:${0.6 + Math.random() * .4}"></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// POMODORO TIMER
+// ══════════════════════════════════════════
+let timerRunning = false, timerSecs = 25 * 60, timerInt = null;
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInt); timerRunning = false;
+    document.getElementById('timerBtn').innerHTML = '<i class="ti ti-player-play"></i>Resume';
+    document.getElementById('timerCircle').style.borderColor = 'var(--border2)';
+  } else {
+    timerRunning = true;
+    document.getElementById('timerBtn').innerHTML = '<i class="ti ti-player-pause"></i>Pause';
+    document.getElementById('timerCircle').style.borderColor = 'var(--accent)';
+    timerInt = setInterval(() => {
+      timerSecs--;
+      if (timerSecs <= 0) {
+        clearInterval(timerInt); timerRunning = false; timerSecs = 5 * 60;
+        pomodoroCount++;
+        const pc = document.getElementById('pomodoroCount'); if(pc) pc.textContent = pomodoroCount;
+        document.getElementById('timerLabel').textContent = 'Break!';
+        document.getElementById('timerCircle').style.borderColor = 'var(--green)';
+        document.getElementById('timerBtn').innerHTML = '<i class="ti ti-player-play"></i>Start focus';
+        return;
+      }
+      const m = Math.floor(timerSecs / 60), s = timerSecs % 60;
+      document.getElementById('timerDisplay').textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }, 1000);
+  }
+}
+function resetTimer() {
+  clearInterval(timerInt); timerRunning = false; timerSecs = 25 * 60;
+  document.getElementById('timerDisplay').textContent = '25:00';
+  document.getElementById('timerLabel').textContent = 'Focus';
+  document.getElementById('timerBtn').innerHTML = '<i class="ti ti-player-play"></i>Start';
+  document.getElementById('timerCircle').style.borderColor = 'var(--accent)';
+}
+
+// ══════════════════════════════════════════
+// EMERGENCY MODAL
+// ══════════════════════════════════════════
+function openEmergency() {
+  const stats = document.getElementById('emergencyStats');
+  const best = mockHistory.length ? Math.max(...mockHistory.map(m => m.score)) : null;
+  const first = mockHistory.length ? mockHistory[mockHistory.length - 1].score : null;
+  stats.innerHTML = [
+    first !== null ? `<div style="background:var(--bg3);border-radius:var(--radius);padding:10px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">First mock score</span><span style="font-weight:700;color:var(--red)">${first}/200</span></div>` : '',
+    best !== null ? `<div style="background:var(--bg3);border-radius:var(--radius);padding:10px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Best mock score</span><span style="font-weight:700;color:var(--green)">${best}/200</span></div>` : '',
+    `<div style="background:var(--bg3);border-radius:var(--radius);padding:10px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Mocks logged</span><span style="font-weight:700;color:var(--amber)">${mockHistory.length}</span></div>`,
+    `<div style="background:var(--accent-bg);border-radius:var(--radius);padding:10px;border:1px solid var(--accent)"><span style="font-size:13px;color:var(--accent);font-weight:500">Every day you study is a day your competition is not. You're still here. That already puts you ahead.</span></div>`,
+  ].join('');
+  document.getElementById('emergencyModal').classList.add('open');
+}
+function closeEmergency() { document.getElementById('emergencyModal').classList.remove('open'); }
+
+// ══════════════════════════════════════════
+// SETTINGS SAVE
+// ══════════════════════════════════════════
+async function saveSettings() {
+  const name = document.getElementById('settingsName').value.trim();
+  const post = document.getElementById('settingsPost').value.trim();
+  const examDate = document.getElementById('settingsExamDate').value;
+  const hours = parseInt(document.getElementById('settingsHours').value) || 6;
+  userProfile = { ...userProfile, name, target_post: post, exam_date: examDate, study_hours: hours };
+  await sb.from('profiles').upsert({ id: currentUser.id, name, target_post: post, exam_date: examDate, study_hours: hours });
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
+  if (examDate) updateExamDate(examDate);
+  showToast('Settings saved! ✓', 'success');
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD STATS
+// ══════════════════════════════════════════
+function updateDashboardCards() {
+  const scores = mockHistory.map(m => m.score);
+  const last = mockHistory[0];
+  const best = scores.length ? Math.max(...scores) : null;
+  const el1 = document.getElementById('lastMockDisplay'); if(el1) el1.textContent = last ? last.score+'/200':'--/200';
+  const el2 = document.getElementById('lastMockDate'); if(el2) el2.textContent = last?'on '+last.date:'No mock logged yet';
+  const el3 = document.getElementById('bestMockDisplay'); if(el3) el3.textContent = best||'--';
+  const el4 = document.getElementById('mockCountDisplay'); if(el4) el4.textContent = mockHistory.length;
+  const tw = document.getElementById('typingWpmDisplay'); if(tw) tw.textContent = bestWpm ? bestWpm+' WPM':'-- WPM';
+  const sa = document.getElementById('streakDisplay'); if(sa) sa.textContent = '🔥 '+(userProfile.streak||0);
+  // avg accuracy from mocks
+  if (mockHistory.length) {
+    const subScores = mockHistory.filter(m=>m.reasoning).map(m=>(m.reasoning+m.quant+m.english+m.gk)/200*100);
+    if (subScores.length) { const avg=Math.round(subScores.reduce((a,b)=>a+b,0)/subScores.length); const ae=document.getElementById('avgAccDisplay'); if(ae) ae.textContent=avg+'%'; }
+  }
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 2800);
+}
+
+// ══════════════════════════════════════════
+// STARTUP — CHECK AUTH
+// ══════════════════════════════════════════
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    await afterLogin(session.user);
+  }
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+      await afterLogin(session.user);
+    }
+  });
+})();
 </script>
 </body>
 </html>
