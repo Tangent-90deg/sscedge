@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -28,6 +28,6 @@ export default async function handler(req, res) {
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Keep going! Consistency is the key to SSC CGL success.';
     return res.status(200).json({ content: [{ type: 'text', text }] });
   } catch (error) {
-    return res.status(500).json({ content: [{ type: 'text', text: 'Stay focused! Every day of preparation counts.' }] });
+    return res.status(500).json({ content: [{ type: 'text', text: 'Stay focused! Every day counts.' }] });
   }
 }
