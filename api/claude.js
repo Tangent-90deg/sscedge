@@ -6,26 +6,24 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
     const { system, messages, max_tokens } = req.body;
-    const systemText = system ? `${system}\n\n` : '';
-    const geminiContents = messages.map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
-    if (system && geminiContents.length > 0 && geminiContents[0].role === 'user') {
-      geminiContents[0].parts[0].text = systemText + geminiContents[0].parts[0].text;
-    }
-    const apiKey = process.env.GEMINI_API_KEY;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
+    const groqMessages = [];
+    if (system) groqMessages.push({ role: 'system', content: system });
+    messages.forEach(m => groqMessages.push({ role: m.role, content: m.content }));
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: geminiContents,
-        generationConfig: { maxOutputTokens: max_tokens || 1000, temperature: 0.7 }
+        model: 'llama-3.1-8b-instant',
+        messages: groqMessages,
+        max_tokens: max_tokens || 1000,
+        temperature: 0.7
       })
     });
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Keep going! Consistency is the key to SSC CGL success.';
+    const text = data?.choices?.[0]?.message?.content || 'Keep going! Consistency is the key to SSC CGL success.';
     return res.status(200).json({ content: [{ type: 'text', text }] });
   } catch (error) {
     return res.status(500).json({ content: [{ type: 'text', text: 'Stay focused! Every day counts.' }] });
