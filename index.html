@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSC Edge — CGL Prep Platform</title>
+<meta name="description" content="AI-powered SSC CGL preparation platform with daily dashboard, typing practice, AI mentor, mock analysis and more.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%236c63ff'/><text y='.9em' font-size='70' x='15' fill='white' font-weight='bold'>S</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f0f14;--bg2:#16161e;--bg3:#1e1e2a;--bg4:#252535;
+  --border:#2a2a3a;--border2:#363650;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#606078;
+  --accent:#6c63ff;--accent2:#5a52e8;--accent-bg:rgba(108,99,255,0.12);
+  --green:#22c55e;--green-bg:rgba(34,197,94,0.12);
+  --amber:#f59e0b;--amber-bg:rgba(245,158,11,0.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,0.12);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,0.12);
+  --pink:#ec4899;--pink-bg:rgba(236,72,153,0.12);
+  --teal:#14b8a6;--teal-bg:rgba(20,184,166,0.12);
+  --radius:10px;--radius-lg:16px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto}
+.sidebar-logo{padding:0 16px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;flex-shrink:0}
+.logo-text{font-size:15px;font-weight:700}
+.logo-sub{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.5px}
+.nav-section{padding:0 8px 8px}
+.nav-label{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;padding:8px 8px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent)}
+.nav-item i{width:18px;text-align:center;font-size:16px}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+
+/* Main */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.header-right{display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;cursor:pointer;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.content{padding:24px}
+.page{display:none}
+.page.active{display:block}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.card-sm{padding:16px}
+.card-title{font-size:13px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.card-value{font-size:28px;font-weight:700}
+.card-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* Progress */
+.progress-bar{height:6px;background:var(--bg4);border-radius:100px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:100px;transition:width .6s ease}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-red{background:var(--red-bg);color:var(--red)}
+.tag-amber{background:var(--amber-bg);color:var(--amber)}
+.tag-accent{background:var(--accent-bg);color:var(--accent)}
+.tag-teal{background:var(--teal-bg);color:var(--teal)}
+.tag-pink{background:var(--pink-bg);color:var(--pink)}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+
+/* Section title */
+.section-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* Stat row */
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* Subject card */
+.subject-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:border-color .15s}
+.subject-card:hover{border-color:var(--border2)}
+.subject-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.subject-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.stars{color:var(--amber);font-size:13px;letter-spacing:1px}
+.metric-row{display:flex;justify-content:space-between;margin-top:10px}
+.metric{text-align:center}
+.metric-val{font-size:16px;font-weight:700}
+.metric-lbl{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Link cards */
+.link-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:border-color .15s}
+.link-card:hover{border-color:var(--accent)}
+.link-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* Typing */
+.typing-area{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'Courier New',monospace;font-size:15px;line-height:2;position:relative;min-height:80px;cursor:text}
+.typing-text span.correct{color:var(--green)}
+.typing-text span.wrong{color:var(--red);background:rgba(239,68,68,.15)}
+.typing-text span.current{border-bottom:2px solid var(--accent)}
+.typing-text span.pending{color:var(--text3)}
+.typing-input{position:absolute;opacity:0;width:1px;height:1px}
+
+/* Mood */
+.mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.mood-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:all .15s;font-size:22px}
+.mood-btn:hover,.mood-btn.selected{border-color:var(--accent);background:var(--accent-bg)}
+.mood-label{font-size:10px;color:var(--text2)}
+
+/* Heatmap */
+.heatmap-grid{display:grid;gap:3px;margin-top:12px}
+.heat-cell{aspect-ratio:1;border-radius:2px}
+
+/* Timer */
+.timer-circle{width:140px;height:140px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--accent);margin:0 auto}
+.timer-time{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.timer-label{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Tables */
+.mock-table{width:100%;border-collapse:collapse}
+.mock-table th{text-align:left;padding:8px 12px;font-size:11px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);letter-spacing:.5px}
+.mock-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.mock-table tr:last-child td{border-bottom:none}
+.mock-table tr:hover td{background:var(--bg3)}
+
+/* AI chat */
+.ai-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:0}
+.ai-bubble.user{background:var(--accent-bg);border-color:var(--accent)}
+.ai-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0}
+.ai-msg-row{display:flex;gap:10px;align-items:flex-start}
+
+/* Misc */
+.divider{height:1px;background:var(--border);margin:16px 0}
+.habit-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:14px;flex-shrink:0}
+.habit-check.done{background:var(--green);border-color:var(--green);color:white}
+.reward-badge{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center}
+.badge-icon{font-size:36px;margin-bottom:8px}
+.badge-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.badge-desc{font-size:11px;color:var(--text3)}
+.countdown-tier{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.pyq-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.emergency-btn{width:100%;padding:16px;background:var(--red-bg);border:2px solid var(--red);border-radius:var(--radius-lg);color:var(--red);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;margin-top:16px}
+.emergency-btn:hover{background:rgba(239,68,68,.2)}
+.input-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.input-field:focus{border-color:var(--accent)}
+.input-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.form-row{margin-bottom:14px}
+.success-story-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}
+.story-accent{position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* Mobile hamburger */
+.hamburger{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px;font-size:22px}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40}
+
+@media(max-width:768px){
+  .hamburger{display:flex;align-items:center}
+  .sidebar{position:fixed;left:-220px;top:0;height:100vh;z-index:50;transition:left .25s}
+  .sidebar.open{left:0}
+  .sidebar-overlay.open{display:block}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .header-right .btn{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">S</div>
+    <div>
+      <div class="logo-text">SSC Edge</div>
+      <div class="logo-sub">CGL PREP PLATFORM</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <button class="nav-item active" onclick="showPage('dashboard')"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+    <button class="nav-item" onclick="showPage('subjects')"><i class="ti ti-book"></i>Subjects</button>
+    <button class="nav-item" onclick="showPage('planner')"><i class="ti ti-calendar"></i>Study Planner</button>
+    <button class="nav-item" onclick="showPage('typing')"><i class="ti ti-keyboard"></i>Typing Practice</button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Analytics</div>
+    <button class="nav-item" onclick="showPage('mock')"><i class="ti ti-chart-bar"></i>Mock Tests</button>
+    <button class="nav-item" onclick="showPage('pyq')"><i class="ti ti-history"></i>PYQ Tracker</button>
+    <button class="nav-item" onclick="showPage('heatmap')"><i class="ti ti-map"></i>Chapter Heatmap</button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Tools</div>
+    <button class="nav-item" onclick="showPage('aimentor')"><i class="ti ti-robot"></i>AI Mentor<span class="nav-badge">AI</span></button>
+    <button class="nav-item" onclick="showPage('motivation')"><i class="ti ti-flame"></i>Motivation</button>
+    <button class="nav-item" onclick="showPage('habits')"><i class="ti ti-heart"></i>Habit Tracker</button>
+    <button class="nav-item" onclick="showPage('rewards')"><i class="ti ti-award"></i>Rewards</button>
+  </div>
+  <div class="nav-section" style="margin-top:auto">
+    <div class="nav-label">Account</div>
+    <button class="nav-item" onclick="showPage('profile')"><i class="ti ti-user"></i>Profile</button>
+    <button class="nav-item" onclick="showPage('settings')"><i class="ti ti-settings"></i>Settings</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="openSidebar()"><i class="ti ti-menu-2"></i></button>
+      <div>
+        <div style="font-size:17px;font-weight:700" id="pageTitle">Good morning, Sidharth 👋</div>
+        <div style="font-size:12px;color:var(--text2)" id="pageSubtitle">SSC CGL 2026 — Keep the streak alive!</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a class="btn btn-ghost" href="https://monkeytype.com" target="_blank"><i class="ti ti-keyboard"></i>Typing</a>
+      <button class="btn btn-primary" onclick="showPage('planner')"><i class="ti ti-plus"></i>Log session</button>
+      <div class="avatar" id="avatarBtn">S</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active content" id="page-dashboard">
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-color:#2a2a4a;padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <div>
+          <div style="font-size:12px;color:var(--text2);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">SSC CGL 2026 — Time Left</div>
+          <div style="font-size:42px;font-weight:800;color:white;line-height:1"><span id="daysLeft">187</span> <span style="font-size:18px;color:var(--text2);font-weight:500">days</span></div>
+          <div style="font-size:13px;color:var(--text2);margin-top:6px">Exam: <span style="color:var(--amber);font-weight:600" id="examDateDisplay">Jan 3, 2027</span> · <a href="#" onclick="showPage('settings');return false" style="color:var(--accent)">Change</a></div>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--amber)">🔥 58</div><div style="font-size:11px;color:var(--text3)">Day streak</div></div>
+          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--green)">83%</div><div style="font-size:11px;color:var(--text3)">Avg accuracy</div></div>
+          <div style="text-align:center"><div style="font-size:24px;font-weight:700;color:var(--accent)">42 WPM</div><div style="font-size:11px;color:var(--text3)">Typing speed</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;border-left:4px solid var(--accent)">
+      <div style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:8px">🤖 AI MENTOR MESSAGE</div>
+      <div style="font-size:15px;line-height:1.7">"You lost only <strong style="color:var(--amber)">3 marks</strong> last mock because of English synonyms. You're already above the expected cutoff. Today's mission: <strong style="color:var(--green)">30 minutes on synonyms + antonyms</strong> — that alone could push your score by 6 marks."</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3)">Based on your last mock (145/200) and weak area analysis</div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card card-sm"><div class="card-title">Hours studied today</div><div class="card-value" style="color:var(--blue)">3.5h</div><div class="progress-bar"><div class="progress-fill" style="width:58%;background:var(--blue)"></div></div><div class="card-sub">Target: 6h</div></div>
+      <div class="card card-sm"><div class="card-title">Questions solved</div><div class="card-value" style="color:var(--green)">87</div><div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--green)"></div></div><div class="card-sub">Target: 120</div></div>
+      <div class="card card-sm"><div class="card-title">Current rank</div><div class="card-value" style="color:var(--amber)">#142</div><div class="card-sub" style="margin-top:8px">↑ 23 from yesterday</div></div>
+      <div class="card card-sm"><div class="card-title">Predicted score</div><div class="card-value" style="color:var(--accent)">162</div><div class="card-sub" style="margin-top:8px">72% selection chance</div></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-check" style="color:var(--green)"></i>Today's targets</div>
+        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brain"></i></div><div><div style="font-size:13px;font-weight:500">Reasoning — 50 Qs</div><div style="font-size:11px;color:var(--text3)">Seating arrangement</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--green)"><i class="ti ti-circle-check-filled" style="font-size:20px"></i></div></div>
+        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div>
+        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-calculator"></i></div><div><div style="font-size:13px;font-weight:500">Quant — 40 Qs</div><div style="font-size:11px;color:var(--text3)">Percentage & Profit/Loss</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
+        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:62%;background:var(--blue)"></div></div>
+        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-vocabulary"></i></div><div><div style="font-size:13px;font-weight:500">English — 30 Qs</div><div style="font-size:11px;color:var(--text3)">Synonyms + Antonyms ⚡</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
+        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:30%;background:var(--amber)"></div></div>
+        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-world"></i></div><div><div style="font-size:13px;font-weight:500">GK Revision</div><div style="font-size:11px;color:var(--text3)">Current affairs + Static</div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
+        <div class="progress-bar" style="margin-bottom:14px"><div class="progress-fill" style="width:0%;background:var(--pink)"></div></div>
+        <div class="stat-row" style="justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div class="stat-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">Typing — 20 min</div><div style="font-size:11px;color:var(--text3)">Target: 45 WPM · <a href="https://monkeytype.com" target="_blank" style="color:var(--teal)">MonkeyType ↗</a></div></div></div><div onclick="toggleTask(this)" style="cursor:pointer;color:var(--text3)"><i class="ti ti-circle" style="font-size:20px"></i></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--teal)"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="section-title"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Weak areas</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">English Synonyms</span><span class="tag tag-red">54%</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Geometry</span><span class="tag tag-amber">61%</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Static GK</span><span class="tag tag-amber">65%</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Seating Arrangement</span><span class="tag tag-green">79%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Quick links</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+            <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook Mocks</div><div style="font-size:11px;color:var(--text3)">Free SSC CGL mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+            <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Notifications & syllabus</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="emergency-btn" onclick="showEmergency()"><i class="ti ti-heart-broken" style="font-size:20px"></i>I want to quit — show me why I started</button>
+  </div>
+
+  <!-- SUBJECTS -->
+  <div class="page content" id="page-subjects">
+    <div class="section-title">Subject tracker</div>
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brain"></i></div><div><div style="font-weight:600">Reasoning</div><div class="tag tag-green" style="margin-top:4px">Strong</div></div></div><span class="stars">★★★★★</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--accent)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--accent)">78%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">87%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">4×</div><div class="metric-lbl">Revisions</div></div></div></div>
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-calculator"></i></div><div><div style="font-weight:600">Quantitative</div><div class="tag tag-amber" style="margin-top:4px">Improving</div></div></div><span class="stars">★★★★☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--blue)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--blue)">62%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">81%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">3×</div><div class="metric-lbl">Revisions</div></div></div></div>
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-vocabulary"></i></div><div><div style="font-weight:600">English</div><div class="tag tag-red" style="margin-top:4px">Weak</div></div></div><span class="stars">★★★☆☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--amber)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--amber)">45%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--red)">67%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--red)">2×</div><div class="metric-lbl">Revisions</div></div></div></div>
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-world"></i></div><div><div style="font-weight:600">General Awareness</div><div class="tag tag-amber" style="margin-top:4px">Improving</div></div></div><span class="stars">★★★☆☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:55%;background:var(--pink)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--pink)">55%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">72%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">2×</div><div class="metric-lbl">Revisions</div></div></div></div>
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-device-laptop"></i></div><div><div style="font-weight:600">Computer</div><div class="tag tag-green" style="margin-top:4px">Strong</div></div></div><span class="stars">★★★★★</span></div><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--teal)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--teal)">90%</div><div class="metric-lbl">Complete</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">93%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--green)">5×</div><div class="metric-lbl">Revisions</div></div></div></div>
+      <div class="subject-card"><div class="subject-header"><div style="display:flex;align-items:center;gap:10px"><div class="subject-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-keyboard"></i></div><div><div style="font-weight:600">Typing</div><div class="tag tag-amber" style="margin-top:4px">42 WPM</div></div></div><span class="stars">★★★★☆</span></div><div class="progress-bar"><div class="progress-fill" style="width:70%;background:var(--green)"></div></div><div class="metric-row"><div class="metric"><div class="metric-val" style="color:var(--green)">42</div><div class="metric-lbl">WPM</div></div><div class="metric"><div class="metric-val" style="color:var(--amber)">96%</div><div class="metric-lbl">Accuracy</div></div><div class="metric"><div class="metric-val" style="color:var(--teal)">24d</div><div class="metric-lbl">Streak</div></div></div></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-repeat" style="color:var(--accent)"></i>Spaced revision schedule</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">Today</div><div style="font-weight:600;color:var(--accent);margin-top:2px">Ratios</div></div>
+        <span style="color:var(--text3);font-size:20px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+1 day</div><div style="font-weight:600;color:var(--blue);margin-top:2px">Revise ↺</div></div>
+        <span style="color:var(--text3);font-size:20px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+3 days</div><div style="font-weight:600;color:var(--green);margin-top:2px">Review</div></div>
+        <span style="color:var(--text3);font-size:20px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+7 days</div><div style="font-weight:600;color:var(--amber);margin-top:2px">Reinforce</div></div>
+        <span style="color:var(--text3);font-size:20px">→</span>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;text-align:center"><div style="font-size:11px;color:var(--text3)">+15 days</div><div style="font-weight:600;color:var(--pink);margin-top:2px">Final</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANNER -->
+  <div class="page content" id="page-planner">
+    <div class="section-title"><i class="ti ti-robot" style="color:var(--accent)"></i>AI study planner</div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Configure your plan</div>
+        <div class="form-row"><div class="input-label">Exam date</div><input type="date" class="input-field" id="examDateInput" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
+        <div class="form-row"><div class="input-label">Hours per day</div><input type="range" min="1" max="12" value="6" oninput="document.getElementById('hoursVal').textContent=this.value+'h'" style="width:100%;margin-bottom:4px"><div style="text-align:right;font-size:13px;color:var(--accent);font-weight:600" id="hoursVal">6h</div></div>
+        <div class="form-row"><div class="input-label">Weak subjects</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+            <div class="tag tag-red" style="cursor:pointer;padding:6px 12px" onclick="this.className=this.className.includes('red')?'tag tag-accent':'tag tag-red'">English</div>
+            <div class="tag tag-accent" style="cursor:pointer;padding:6px 12px" onclick="this.className=this.className.includes('red')?'tag tag-accent':'tag tag-red'">Quant</div>
+            <div class="tag tag-amber" style="cursor:pointer;padding:6px 12px">GK</div>
+            <div class="tag tag-green" style="cursor:pointer;padding:6px 12px">Reasoning</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="generatePlan(this)"><i class="ti ti-robot"></i>Generate AI plan</button>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Today's schedule</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">6:00 AM</div><div style="flex:1;background:var(--accent-bg);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Reasoning — Syllogisms</div><div style="font-size:11px;color:var(--text3)">1h · 25 questions</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">7:30 AM</div><div style="flex:1;background:var(--blue-bg);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Quant — Percentage</div><div style="font-size:11px;color:var(--text3)">1h · 20 questions</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">9:00 AM</div><div style="flex:1;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">English — Synonyms ⚡</div><div style="font-size:11px;color:var(--text3)">45 min — boosted (weak area)</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">10:30 AM</div><div style="flex:1;background:var(--bg3);border-left:3px solid var(--text3);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Break</div><div style="font-size:11px;color:var(--text3)">1.5h</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">12:00 PM</div><div style="flex:1;background:var(--pink-bg);border-left:3px solid var(--pink);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">GK — Current Affairs</div><div style="font-size:11px;color:var(--text3)">45 min</div></div></div>
+          <div style="display:flex;gap:10px;align-items:center"><div style="width:56px;font-size:11px;color:var(--text3);font-weight:600">1:00 PM</div><div style="flex:1;background:var(--teal-bg);border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:8px 12px"><div style="font-size:13px;font-weight:500">Typing — 20 min</div><div style="font-size:11px;color:var(--text3)"><a href="https://monkeytype.com" target="_blank" style="color:var(--teal)">MonkeyType ↗</a> · Target 45 WPM</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-clock" style="color:var(--amber)"></i>Pomodoro timer</div>
+      <div style="display:flex;align-items:center;gap:40px;flex-wrap:wrap">
+        <div class="timer-circle" id="timerCircle"><div class="timer-time" id="timerDisplay">25:00</div><div class="timer-label" id="timerLabel">Focus session</div></div>
+        <div>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn btn-primary" id="timerBtn" onclick="toggleTimer()"><i class="ti ti-player-play"></i>Start</button>
+            <button class="btn btn-ghost" onclick="resetTimer()"><i class="ti ti-refresh"></i>Reset</button>
+          </div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Sessions today: <strong style="color:var(--amber)">3 × 25 min</strong></div>
+          <div style="font-size:13px;color:var(--text2)">Total focus: <strong style="color:var(--accent)">1h 15min</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPING -->
+  <div class="page content" id="page-typing">
+    <div class="section-title"><i class="ti ti-keyboard" style="color:var(--teal)"></i>Typing practice</div>
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card card-sm"><div class="card-title">WPM</div><div class="card-value" style="color:var(--teal)" id="wpmDisplay">0</div></div>
+      <div class="card card-sm"><div class="card-title">Accuracy</div><div class="card-value" style="color:var(--green)" id="accDisplay">100%</div></div>
+      <div class="card card-sm"><div class="card-title">Errors</div><div class="card-value" style="color:var(--red)" id="errDisplay">0</div></div>
+      <div class="card card-sm"><div class="card-title">Time</div><div class="card-value" style="color:var(--accent)" id="timeDisplay">0s</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:500">Click below and start typing</div>
+        <button class="btn btn-ghost" onclick="resetTyping()" style="font-size:12px;padding:6px 10px"><i class="ti ti-refresh"></i>New text</button>
+      </div>
+      <div class="typing-area" onclick="document.getElementById('typingInput').focus()">
+        <div class="typing-text" id="typingText"></div>
+        <input class="typing-input" id="typingInput" oninput="handleTyping(event)" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Practice resources</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">Best English typing</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://www.typeinhindi.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">TypeInHindi.com</div><div style="font-size:11px;color:var(--text3)">Hindi typing for Tier 2</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://10fastfingers.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-trophy"></i></div><div><div style="font-size:13px;font-weight:500">10FastFingers</div><div style="font-size:11px;color:var(--text3)">Speed competitions</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://www.typingclub.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-certificate"></i></div><div><div style="font-size:13px;font-weight:500">TypingClub</div><div style="font-size:11px;color:var(--text3)">Structured lessons</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="ti ti-chart-line" style="color:var(--teal)"></i>Your progress</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">Current WPM</span><span style="font-weight:600;color:var(--teal)">42</span></div><div class="progress-bar"><div class="progress-fill" style="width:56%;background:var(--teal)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">SSC CGL requirement</span><span style="font-weight:600;color:var(--green)">35 WPM ✓</span></div><div class="progress-bar"><div class="progress-fill" style="width:46%;background:var(--green)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">Personal target</span><span style="font-weight:600;color:var(--amber)">55 WPM</span></div><div class="progress-bar"><div class="progress-fill" style="width:73%;background:var(--amber)"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOCK -->
+  <div class="page content" id="page-mock">
+    <div class="section-title"><i class="ti ti-chart-bar" style="color:var(--accent)"></i>Mock test analysis</div>
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card card-sm"><div class="card-title">Last mock score</div><div class="card-value" style="color:var(--accent)">145/200</div><div class="card-sub">78th percentile</div></div>
+      <div class="card card-sm"><div class="card-title">Negative marks</div><div class="card-value" style="color:var(--red)">-8.5</div><div class="card-sub">34 wrong × 0.25</div></div>
+      <div class="card card-sm"><div class="card-title">Avg speed</div><div class="card-value" style="color:var(--green)">1.2s</div><div class="card-sub">per question</div></div>
+      <div class="card card-sm"><div class="card-title">Guess accuracy</div><div class="card-value" style="color:var(--amber)">62%</div><div class="card-sub">11 guesses, 7 right</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title">Subject breakdown</div>
+      <table class="mock-table">
+        <thead><tr><th>Subject</th><th>Attempted</th><th>Correct</th><th>Wrong</th><th>Accuracy</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Reasoning</td><td>25/25</td><td>22</td><td>3</td><td><span class="tag tag-green">88%</span></td><td><span class="tag tag-green">Strong</span></td></tr>
+          <tr><td>Quantitative</td><td>24/25</td><td>20</td><td>4</td><td><span class="tag tag-green">83%</span></td><td><span class="tag tag-green">Good</span></td></tr>
+          <tr><td>English</td><td>22/25</td><td>13</td><td>9</td><td><span class="tag tag-red">59%</span></td><td><span class="tag tag-red">⚡ Focus here</span></td></tr>
+          <tr><td>General Awareness</td><td>25/25</td><td>18</td><td>7</td><td><span class="tag tag-amber">72%</span></td><td><span class="tag tag-amber">Needs work</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-external-link" style="color:var(--accent)"></i>Free mock test sites</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook</div><div style="font-size:11px;color:var(--text3)">SSC CGL full mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        <a href="https://www.oliveboard.in/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Oliveboard</div><div style="font-size:11px;color:var(--text3)">AI adaptive mocks</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Official pattern</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        <a href="https://www.youtube.com/@sscadda" target="_blank" class="link-card"><div class="link-icon" style="background:var(--red-bg);color:var(--red)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">SSC Adda</div><div style="font-size:11px;color:var(--text3)">Free video solutions</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PYQ -->
+  <div class="page content" id="page-pyq">
+    <div class="section-title"><i class="ti ti-history" style="color:var(--amber)"></i>Previous Year Questions</div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="input-field" style="width:auto"><option>All subjects</option><option>Reasoning</option><option>Quant</option><option>English</option><option>GK</option></select>
+        <select class="input-field" style="width:auto"><option>All years</option><option>2024</option><option>2023</option><option>2022</option></select>
+        <select class="input-field" style="width:auto"><option>All difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">A train covers 360 km at 60 km/h. What is the time taken?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-green">Easy</span><span class="tag tag-accent">Quant — Speed/Time</span><span style="font-size:11px;color:var(--text3)">CGL 2023 · Appeared 4×</span></div></div><div class="tag tag-green">Solved</div></div>
+      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">Choose the synonym of ELOQUENT.</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-amber">Medium</span><span class="tag tag-amber">English — Synonyms</span><span style="font-size:11px;color:var(--text3)">CGL 2022 · Appeared 6×</span></div></div><div class="tag tag-red">Unsolved</div></div>
+      <div class="pyq-row"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">Who is the first woman President of India?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-green">Easy</span><span class="tag tag-pink">GK — Polity</span><span style="font-size:11px;color:var(--text3)">CGL 2024 · Appeared 2×</span></div></div><div class="tag tag-green">Solved</div></div>
+      <div class="pyq-row" style="border-bottom:none"><div style="flex:1"><div style="font-size:13px;margin-bottom:4px">All dogs are animals. All animals are living beings. Conclusion?</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><span class="tag tag-red">Hard</span><span class="tag tag-accent">Reasoning — Syllogism</span><span style="font-size:11px;color:var(--text3)">CGL 2021 · Appeared 8×</span></div></div><div class="tag tag-amber">In progress</div></div>
+    </div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="page content" id="page-heatmap">
+    <div class="section-title"><i class="ti ti-map" style="color:var(--accent)"></i>Chapter heatmap</div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--green);border-radius:3px"></div>Completed</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--amber);border-radius:3px"></div>Needs revision</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--red);border-radius:3px"></div>Weak</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><div style="width:14px;height:14px;background:var(--bg4);border-radius:3px"></div>Not started</div>
+      </div>
+      <div id="heatmap" class="heatmap-grid" style="grid-template-columns:repeat(15,1fr)"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="section-title">Reasoning</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Seating Arrangement</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:90%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Syllogism</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:70%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Blood Relations</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:85%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Coding-Decoding</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:30%;background:var(--red)"></div></div><span class="tag tag-red">Weak</span></div></div>
+        </div>
+      </div>
+      <div class="card"><div class="section-title">Quantitative</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Percentage</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:80%;background:var(--green)"></div></div><span class="tag tag-green">Done</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Geometry</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:40%;background:var(--red)"></div></div><span class="tag tag-red">Weak</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Profit & Loss</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:75%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px">Algebra</span><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:60%;background:var(--amber)"></div></div><span class="tag tag-amber">Revise</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI MENTOR -->
+  <div class="page content" id="page-aimentor">
+    <div class="section-title"><i class="ti ti-robot" style="color:var(--accent)"></i>SSC Mentor — AI powered</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:280px">
+        <div class="card" style="height:380px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:12px" id="chatWindow">
+          <div class="ai-msg-row"><div class="ai-avatar"><i class="ti ti-robot" style="font-size:16px"></i></div><div class="ai-bubble" style="flex:1"><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div><div style="font-size:13px;line-height:1.7">Hello! Based on your progress:<br><br>📊 Mock: <strong>145/200</strong> — above average<br>⚡ Weak: <strong>English synonyms</strong> (54%)<br>🔥 Streak: <strong>58 days</strong> — incredible!<br><br>Start with synonyms today before fatigue sets in. You're closer to selection than you think!</div></div></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input class="input-field" id="mentorInput" placeholder="Ask anything — doubts, motivation, strategy..." onkeydown="if(event.key==='Enter')sendMentorMsg()" style="flex:1">
+          <button class="btn btn-primary" onclick="sendMentorMsg()"><i class="ti ti-send"></i></button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">I'm demotivated</button>
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">How to improve English?</button>
+          <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="document.getElementById('mentorInput').value=this.textContent.trim()">Last 30 days strategy</button>
+        </div>
+      </div>
+      <div style="width:220px;display:flex;flex-direction:column;gap:12px;flex-shrink:0">
+        <div class="card card-sm">
+          <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:10px">Your snapshot</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Mock score</div><div style="font-weight:700;font-size:18px;color:var(--accent);margin-bottom:10px">145/200</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Study streak</div><div style="font-weight:700;font-size:18px;color:var(--amber);margin-bottom:10px">🔥 58 days</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Typing speed</div><div style="font-weight:700;font-size:18px;color:var(--teal)">42 WPM</div>
+        </div>
+        <div class="card card-sm">
+          <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:10px">Success story</div>
+          <div class="success-story-card">
+            <div class="story-accent"></div>
+            <div style="padding-left:12px"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Riya Sharma</div><div style="font-size:11px;color:var(--text3)">SSC CGL 2024 — AIR 156</div><div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6">"Failed twice. Third attempt I scored 187. Consistency over brilliance."</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOTIVATION -->
+  <div class="page content" id="page-motivation">
+    <div class="section-title"><i class="ti ti-flame" style="color:var(--amber)"></i>Daily mood check-in</div>
+    <div class="card" style="margin-bottom:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px">How was today's study session?</div>
+      <div class="mood-grid">
+        <div class="mood-btn" onclick="selectMood(this,'excellent')"><span>😁</span><span class="mood-label">Excellent</span></div>
+        <div class="mood-btn" onclick="selectMood(this,'good')"><span>🙂</span><span class="mood-label">Good</span></div>
+        <div class="mood-btn" onclick="selectMood(this,'average')"><span>😐</span><span class="mood-label">Average</span></div>
+        <div class="mood-btn" onclick="selectMood(this,'bad')"><span>😔</span><span class="mood-label">Bad</span></div>
+        <div class="mood-btn" onclick="selectMood(this,'terrible')"><span>😭</span><span class="mood-label">Terrible</span></div>
+      </div>
+      <div id="moodResponse" style="margin-top:16px;display:none"></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-clock" style="color:var(--accent)"></i>SSC CGL countdown</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Tier 1 — General Studies</div><div style="font-size:11px;color:var(--text3)">100 questions · 60 min</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700" id="t1Days">187 days</div></div>
+        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Tier 2 — Advanced</div><div style="font-size:11px;color:var(--text3)">3 sessions · 2h 30 min each</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">~240 days</div></div>
+        <div class="countdown-tier"><div><div style="font-size:13px;font-weight:600">Typing test</div><div style="font-size:11px;color:var(--text3)">35 WPM English / 30 WPM Hindi</div></div><div style="background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700">~280 days</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="page content" id="page-habits">
+    <div class="section-title"><i class="ti ti-heart" style="color:var(--pink)"></i>Habit tracker</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Healthy habits = better scores. Tick each one daily.</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-droplet"></i></div><div><div style="font-size:13px;font-weight:500">8 glasses of water</div><div style="font-size:11px;color:var(--text3)">Hydration improves focus</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-run"></i></div><div><div style="font-size:13px;font-weight:500">30 min exercise</div><div style="font-size:11px;color:var(--text3)">Boosts memory retention</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="ti ti-moon"></i></div><div><div style="font-size:13px;font-weight:500">7–8 hours sleep</div><div style="font-size:11px;color:var(--text3)">Memory consolidation in sleep</div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-leaf"></i></div><div><div style="font-size:13px;font-weight:500">10 min meditation</div><div style="font-size:11px;color:var(--text3)">Reduces exam anxiety</div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="ti ti-news"></i></div><div><div style="font-size:13px;font-weight:500">Newspaper — 20 min</div><div style="font-size:11px;color:var(--text3)">Current affairs for GK</div></div></div><div class="habit-check done" onclick="toggleHabit(this)">✓</div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:12px"><div class="stat-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">Daily typing practice</div><div style="font-size:11px;color:var(--text3)">Min 20 min · <a href="https://monkeytype.com" target="_blank" style="color:var(--accent)">MonkeyType ↗</a></div></div></div><div class="habit-check" onclick="toggleHabit(this)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REWARDS -->
+  <div class="page content" id="page-rewards">
+    <div class="section-title"><i class="ti ti-award" style="color:var(--amber)"></i>Rewards</div>
+    <div class="grid-4" style="margin-bottom:20px">
+      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🪙</div><div style="font-size:20px;font-weight:700;color:var(--amber)">2,450</div><div style="font-size:11px;color:var(--text3)">Coins</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">⭐</div><div style="font-size:20px;font-weight:700;color:var(--accent)">12,800</div><div style="font-size:11px;color:var(--text3)">XP points</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🏆</div><div style="font-size:20px;font-weight:700;color:var(--green)">8</div><div style="font-size:11px;color:var(--text3)">Badges earned</div></div>
+      <div class="card card-sm" style="text-align:center"><div style="font-size:28px;margin-bottom:4px">🔥</div><div style="font-size:20px;font-weight:700;color:var(--red)">58</div><div style="font-size:11px;color:var(--text3)">Day streak</div></div>
+    </div>
+    <div class="grid-4">
+      <div class="reward-badge"><div class="badge-icon">🔥</div><div class="badge-name">58-Day Warrior</div><div class="badge-desc">Studied 58 days straight</div></div>
+      <div class="reward-badge"><div class="badge-icon">⌨️</div><div class="badge-name">Typing Adept</div><div class="badge-desc">Reached 40+ WPM</div></div>
+      <div class="reward-badge"><div class="badge-icon">🧠</div><div class="badge-name">Reasoning Ninja</div><div class="badge-desc">90%+ in reasoning mock</div></div>
+      <div class="reward-badge"><div class="badge-icon">📚</div><div class="badge-name">100 Mocks Club</div><div class="badge-desc" style="color:var(--text3)">12 more to unlock</div></div>
+      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">👑</div><div class="badge-name">Quant King</div><div class="badge-desc">95%+ in quant mock</div></div>
+      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🌟</div><div class="badge-name">100-Day Legend</div><div class="badge-desc">42 days to unlock</div></div>
+      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🚀</div><div class="badge-name">Speed Demon</div><div class="badge-desc">Reach 55 WPM</div></div>
+      <div class="reward-badge" style="opacity:.4"><div class="badge-icon">🎯</div><div class="badge-name">Cutoff Crusher</div><div class="badge-desc">Score 180+ in mock</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page content" id="page-profile">
+    <div class="section-title"><i class="ti ti-user" style="color:var(--accent)"></i>Your profile</div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px"><div class="avatar" style="width:64px;height:64px;font-size:24px;border-radius:50%" id="bigAvatar">S</div><div><div style="font-size:18px;font-weight:700" id="profileName">Sidharth Kumar</div><div style="font-size:13px;color:var(--text2)">sidharth@email.com</div><div class="tag tag-accent" style="margin-top:6px">SSC CGL Aspirant</div></div></div>
+        <div class="divider"></div>
+        <div class="form-row"><div class="input-label">Full name</div><input class="input-field" id="nameInput" value="Sidharth Kumar" oninput="updateName(this.value)"></div>
+        <div class="form-row"><div class="input-label">Target post</div><input class="input-field" value="Assistant Section Officer (ASO)"></div>
+        <div class="form-row"><div class="input-label">Exam date</div><input type="date" class="input-field" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
+        <button class="btn btn-primary" onclick="this.textContent='Saved ✓';setTimeout(()=>this.innerHTML='<i class=ti ti-check></i>Save changes',1500)"><i class="ti ti-check"></i>Save changes</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Progress timeline</div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--green);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 1 — Started</div><div style="font-size:11px;color:var(--text3)">Accuracy: 55% · Mock: 98/200</div></div></div>
+          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--green);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 30 — First breakthrough</div><div style="font-size:11px;color:var(--text3)">Accuracy: 69% · Mock: 119/200</div></div></div>
+          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:var(--accent);margin-top:2px;flex-shrink:0"></div><div style="width:2px;flex:1;background:var(--border);margin:4px 0"></div></div><div style="padding-bottom:16px"><div style="font-size:13px;font-weight:600">Day 58 — Today 🔥</div><div style="font-size:11px;color:var(--text3)">Accuracy: 83% · Mock: 145/200</div></div></div>
+          <div style="display:flex;gap:12px"><div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;border:2px solid var(--text3);margin-top:2px;flex-shrink:0"></div></div><div><div style="font-size:13px;font-weight:600;color:var(--text3)">Exam day — Target: 175+</div><div style="font-size:11px;color:var(--text3)" id="daysLeftProfile">187 days to go</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page content" id="page-settings">
+    <div class="section-title"><i class="ti ti-settings" style="color:var(--accent)"></i>Settings</div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Exam configuration</div>
+        <div class="form-row"><div class="input-label">Your name</div><input class="input-field" id="settingsName" value="Sidharth" oninput="updateName(this.value)"></div>
+        <div class="form-row"><div class="input-label">SSC CGL exam date</div><input type="date" class="input-field" id="settingsExamDate" value="2027-01-03" onchange="updateExamDate(this.value)"></div>
+        <div class="form-row"><div class="input-label">Daily study target (hours)</div><input type="number" class="input-field" min="1" max="16" value="6"></div>
+        <div class="form-row"><div class="input-label">Target typing speed (WPM)</div><input type="number" class="input-field" min="30" max="100" value="55"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="this.textContent='Saved ✓';setTimeout(()=>this.innerHTML='<i class=ti ti-check></i>Save settings',1500)"><i class="ti ti-check"></i>Save settings</button>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px">Study resources</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="https://monkeytype.com" target="_blank" class="link-card"><div class="link-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="ti ti-keyboard"></i></div><div><div style="font-size:13px;font-weight:500">MonkeyType</div><div style="font-size:11px;color:var(--text3)">English typing practice</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://ssc.nic.in" target="_blank" class="link-card"><div class="link-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="ti ti-building-government"></i></div><div><div style="font-size:13px;font-weight:500">SSC Official</div><div style="font-size:11px;color:var(--text3)">Notifications & syllabus</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://testbook.com/ssc-cgl" target="_blank" class="link-card"><div class="link-icon" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-clipboard-check"></i></div><div><div style="font-size:13px;font-weight:500">Testbook</div><div style="font-size:11px;color:var(--text3)">Free mock tests</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://www.youtube.com/@sscadda" target="_blank" class="link-card"><div class="link-icon" style="background:var(--red-bg);color:var(--red)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">SSC Adda</div><div style="font-size:11px;color:var(--text3)">Free video lectures</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+          <a href="https://www.youtube.com/@studyiqeducation" target="_blank" class="link-card"><div class="link-icon" style="background:var(--accent-bg);color:var(--accent)"><i class="ti ti-brand-youtube"></i></div><div><div style="font-size:13px;font-weight:500">StudyIQ</div><div style="font-size:11px;color:var(--text3)">Current affairs & GK</div></div><i class="ti ti-external-link" style="margin-left:auto;color:var(--text3)"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<!-- Emergency modal -->
+<div id="emergencyModal" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;max-width:480px;width:90%;position:relative">
+    <button onclick="closeEmergency()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px"><i class="ti ti-x"></i></button>
+    <div style="font-size:24px;margin-bottom:8px">💪 Remember why you started</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:20px">Look at how far you've come:</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Day 1 mock score</span><span style="font-weight:700;color:var(--red)">98/200</span></div>
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Today's mock score</span><span style="font-weight:700;color:var(--green)">145/200 ↑47 marks</span></div>
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:12px;display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--text2)">Current streak</span><span style="font-weight:700;color:var(--amber)">🔥 58 days</span></div>
+      <div style="background:var(--accent-bg);border-radius:var(--radius);padding:12px;border:1px solid var(--accent)"><span style="font-size:13px;color:var(--accent);font-weight:500">You are only <strong>15 marks away</strong> from the expected cutoff. This is not the time to quit.</span></div>
+    </div>
+    <div style="font-size:14px;color:var(--text2);line-height:1.8">🏛️ ASO in Ministry of Finance · ₹35,000–₹1,10,000 pay scale · Government security · Family pride</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:20px;padding:14px;font-size:15px" onclick="closeEmergency()"><i class="ti ti-flame"></i>I'm not quitting. Let's go!</button>
+  </div>
+</div>
+
+<script>
+const PAGES={
+  dashboard:'Good morning, Sidharth 👋|SSC CGL 2026 — Keep the streak alive!',
+  subjects:'Subject tracker|Track preparation across all 6 subjects',
+  planner:'AI study planner|Personalized daily & weekly schedule',
+  typing:'Typing practice|Build speed and accuracy for Tier 2',
+  mock:'Mock test analysis|Deep dive into your performance',
+  pyq:'PYQ tracker|Previous year questions by topic & difficulty',
+  heatmap:'Chapter heatmap|Your progress at a glance',
+  aimentor:'SSC Mentor|AI-powered personal coach',
+  motivation:'Motivation & mood|Check in daily, stay on track',
+  habits:'Habit tracker|Healthy habits = better scores',
+  rewards:'Rewards|Achievements and milestones',
+  profile:'Your profile|Journey from Day 1 to exam day',
+  settings:'Settings|Configure exam date and preferences'
+};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('page-'+id);
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'"))b.classList.add('active');
+  });
+  const info=PAGES[id]||'Dashboard|';
+  const [title,sub]=info.split('|');
+  document.getElementById('pageTitle').textContent=title;
+  document.getElementById('pageSubtitle').textContent=sub;
+  closeSidebar();
+}
+
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+
+function toggleTask(el){
+  const icon=el.querySelector('i');
+  if(icon.className.includes('filled')){icon.className='ti ti-circle';el.style.color='var(--text3)';}
+  else{icon.className='ti ti-circle-check-filled';el.style.color='var(--green)';}
+}
+function toggleHabit(el){
+  const done=el.classList.contains('done');
+  el.classList.toggle('done',!done);
+  el.textContent=done?'':'✓';
+}
+
+function selectMood(el,mood){
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const responses={
+    excellent:'Amazing! 🎉 Keep this energy — log an extra 30 min of Quant today!',
+    good:'Great work! Consistency beats intensity. Tomorrow focus on your weakest chapter.',
+    average:'That\'s okay. Most aspirants have average days. Try just 1 hour of Reasoning tonight — no pressure.',
+    bad:'Everyone has bad days. Missing one day won\'t fail you. Today\'s target: just 30 minutes. No pressure.',
+    terrible:'Take the evening off completely. Rest is recovery. Return tomorrow with a fresh 1-hour session. 💙'
+  };
+  const colors={excellent:'var(--green)',good:'var(--accent)',average:'var(--amber)',bad:'var(--amber)',terrible:'var(--teal)'};
+  const resp=document.getElementById('moodResponse');
+  resp.style.display='block';
+  resp.innerHTML=`<div style="background:var(--bg3);border-left:3px solid ${colors[mood]};border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px;font-size:13px;line-height:1.7">${responses[mood]}</div>`;
+}
+
+function updateName(val){
+  document.getElementById('pageTitle').textContent='Good morning, '+val+' 👋';
+  if(document.getElementById('profileName'))document.getElementById('profileName').textContent=val+' Kumar';
+  document.getElementById('avatarBtn').textContent=val[0]||'S';
+  document.getElementById('bigAvatar').textContent=val[0]||'S';
+}
+
+function updateExamDate(val){
+  if(!val)return;
+  const exam=new Date(val);const now=new Date();
+  const diff=Math.ceil((exam-now)/(1000*60*60*24));
+  document.getElementById('daysLeft').textContent=diff;
+  document.getElementById('daysLeftProfile').textContent=diff+' days to go';
+  if(document.getElementById('t1Days'))document.getElementById('t1Days').textContent=diff+' days';
+  const opts={year:'numeric',month:'short',day:'numeric'};
+  document.getElementById('examDateDisplay').textContent=exam.toLocaleDateString('en-IN',opts);
+  if(document.getElementById('settingsExamDate'))document.getElementById('settingsExamDate').value=val;
+  if(document.getElementById('examDateInput'))document.getElementById('examDateInput').value=val;
+}
+
+// Typing practice
+const texts=[
+  'The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon in the month of June.',
+  'Government jobs provide stability and security to millions of families across India every single year of their lives.',
+  'Consistency is the most underrated quality in competitive exam preparation — just show up every single day without fail.',
+  'SSC CGL aspirants who practice typing daily gain a significant advantage in the Tier 2 descriptive paper examination.'
+];
+let currentText='',typed='',startTime=null,timerInterval=null;
+
+function initTyping(){
+  currentText=texts[Math.floor(Math.random()*texts.length)];
+  typed='';startTime=null;
+  clearInterval(timerInterval);
+  ['wpmDisplay','errDisplay'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('accDisplay').textContent='100%';
+  document.getElementById('timeDisplay').textContent='0s';
+  renderTyping();
+}
+function renderTyping(){
+  document.getElementById('typingText').innerHTML=currentText.split('').map((ch,i)=>{
+    let cls=i<typed.length?(typed[i]===ch?'correct':'wrong'):(i===typed.length?'current':'pending');
+    return`<span class="${cls}">${ch}</span>`;
+  }).join('');
+}
+function handleTyping(e){
+  typed=e.target.value;
+  if(!startTime&&typed.length>0){
+    startTime=Date.now();
+    timerInterval=setInterval(()=>{
+      const secs=Math.round((Date.now()-startTime)/1000);
+      document.getElementById('timeDisplay').textContent=secs+'s';
+      const wpm=Math.round((typed.trim().split(' ').length)/Math.max(secs/60,0.01));
+      document.getElementById('wpmDisplay').textContent=wpm;
+    },500);
+  }
+  let w=0;for(let i=0;i<typed.length;i++)if(typed[i]!==currentText[i])w++;
+  const acc=typed.length>0?Math.round(((typed.length-w)/typed.length)*100):100;
+  document.getElementById('errDisplay').textContent=w;
+  document.getElementById('accDisplay').textContent=acc+'%';
+  renderTyping();
+  if(typed.length>=currentText.length)clearInterval(timerInterval);
+}
+function resetTyping(){initTyping();document.getElementById('typingInput').value='';}
+
+// Pomodoro
+let timerRunning=false,timerSecs=25*60,timerInt=null;
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInt);timerRunning=false;
+    document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Resume';
+    document.getElementById('timerCircle').style.borderColor='var(--border2)';
+  }else{
+    timerRunning=true;
+    document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-pause"></i>Pause';
+    document.getElementById('timerCircle').style.borderColor='var(--accent)';
+    timerInt=setInterval(()=>{
+      timerSecs--;
+      if(timerSecs<=0){
+        clearInterval(timerInt);timerRunning=false;timerSecs=5*60;
+        document.getElementById('timerLabel').textContent='Break time!';
+        document.getElementById('timerCircle').style.borderColor='var(--green)';
+        document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Start focus';
+        return;
+      }
+      const m=Math.floor(timerSecs/60),s=timerSecs%60;
+      document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    },1000);
+  }
+}
+function resetTimer(){
+  clearInterval(timerInt);timerRunning=false;timerSecs=25*60;
+  document.getElementById('timerDisplay').textContent='25:00';
+  document.getElementById('timerLabel').textContent='Focus session';
+  document.getElementById('timerBtn').innerHTML='<i class="ti ti-player-play"></i>Start';
+  document.getElementById('timerCircle').style.borderColor='var(--accent)';
+}
+
+// Emergency modal
+function showEmergency(){document.getElementById('emergencyModal').style.display='flex';}
+function closeEmergency(){document.getElementById('emergencyModal').style.display='none';}
+
+// Heatmap
+function buildHeatmap(){
+  const el=document.getElementById('heatmap');
+  const colors=['var(--green)','var(--amber)','var(--red)','var(--bg4)'];
+  const weights=[0.45,0.25,0.1,0.2];
+  el.innerHTML=Array.from({length:90},()=>{
+    const r=Math.random();let sum=0,c=3;
+    for(let i=0;i<weights.length;i++){sum+=weights[i];if(r<sum){c=i;break;}}
+    return`<div class="heat-cell" style="background:${colors[c]};opacity:${0.6+Math.random()*.4}"></div>`;
+  }).join('');
+}
+
+// AI Mentor
+async function sendMentorMsg(){
+  const input=document.getElementById('mentorInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  const chat=document.getElementById('chatWindow');
+  chat.innerHTML+=`<div class="ai-msg-row" style="flex-direction:row-reverse"><div class="avatar" style="width:32px;height:32px;font-size:13px;flex-shrink:0">${document.getElementById('avatarBtn').textContent}</div><div class="ai-bubble user" style="flex:1"><div style="font-size:13px">${msg}</div></div></div>`;
+  input.value='';chat.scrollTop=chat.scrollHeight;
+  const thinkingId='t'+Date.now();
+  chat.innerHTML+=`<div class="ai-msg-row" id="${thinkingId}"><div class="ai-avatar"><i class="ti ti-robot" style="font-size:16px"></i></div><div class="ai-bubble" style="flex:1"><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">SSC Mentor</div><div style="font-size:13px;color:var(--text3)">Thinking...</div></div></div>`;
+  chat.scrollTop=chat.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'You are SSC Mentor, a warm personal AI coach for SSC CGL aspirants in India. Student stats: 58-day streak, mock score 145/200, typing 42 WPM, weak in English synonyms (54% accuracy). Respond in 3-5 sentences. Be specific, warm, and actionable. Reference their stats when relevant.',
+        messages:[{role:'user',content:msg}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.map(c=>c.text||'').join('')||'Keep going! Your 58-day streak shows incredible dedication. Focus on English synonyms today — that\'s your fastest path to a higher score.';
+    document.getElementById(thinkingId).querySelector('.ai-bubble div:last-child').innerHTML=reply.replace(/\n/g,'<br>');
+  }catch(e){
+    document.getElementById(thinkingId).querySelector('.ai-bubble div:last-child').textContent='Stay focused! Your 58-day streak proves you have what it takes. Tackle English synonyms today.';
+  }
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function generatePlan(btn){
+  btn.innerHTML='<i class="ti ti-check"></i>Plan updated!';
+  btn.style.background='var(--green)';
+  setTimeout(()=>{btn.innerHTML='<i class="ti ti-robot"></i>Generate AI plan';btn.style.background='';},2000);
+}
+
+// Init
+buildHeatmap();
+initTyping();
+updateExamDate('2027-01-03');
+</script>
+</body>
+</html>
